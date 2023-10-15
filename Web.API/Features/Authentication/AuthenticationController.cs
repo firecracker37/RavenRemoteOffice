@@ -2,7 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using Web.API.Constants;
 using Web.API.Features.Authentication.Commands;
+using Web.API.Features.Authentication.DTOs;
+using Web.API.Features.Authentication.Models;
 using Web.API.Features.Authentication.Queries;
 using Web.Shared.DTOs;
 
@@ -18,6 +21,8 @@ namespace Web.API.Features.Authentication
         private readonly LogoutCommand _logoutCommand;
         private readonly SendEmailVerificationEmailCommand _sendEmailVerificationEmailCommand;
         private readonly VerifyUserEmailCommand _verifyUserEmailCommand;
+        private readonly AddUserToRoleCommand _addUserToRoleCommand;
+        private readonly RemoveUserFromRoleCommand _removeUserFromRoleCommand;
         private readonly GetUserQuery _getUserQuery;
         private readonly GetUserByEmailQuery _getUserByEmailQuery;
         private readonly ILogger<AuthenticationController> _logger;
@@ -29,6 +34,8 @@ namespace Web.API.Features.Authentication
             LogoutCommand logoutCommand,
             SendEmailVerificationEmailCommand sendEmailVerificationEmailCommand,
             VerifyUserEmailCommand verifyUserEmailCommand,
+            AddUserToRoleCommand addUserToRoleCommand,
+            RemoveUserFromRoleCommand removeUserFromRoleCommand,
             GetUserQuery getUserQuery,
             GetUserByEmailQuery getUserByEmailQuery,
             ILogger<AuthenticationController> logger)
@@ -39,6 +46,7 @@ namespace Web.API.Features.Authentication
             _logoutCommand = logoutCommand;
             _sendEmailVerificationEmailCommand = sendEmailVerificationEmailCommand;
             _verifyUserEmailCommand = verifyUserEmailCommand;
+            _addUserToRoleCommand = addUserToRoleCommand;
             _getUserQuery = getUserQuery;
             _getUserByEmailQuery = getUserByEmailQuery;
             _logger = logger;
@@ -162,7 +170,7 @@ namespace Web.API.Features.Authentication
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<UserInformationDTO>> GetUser(string id)
+        public async Task<ActionResult<ApplicationUser>> GetUser(string id)
         {
             var user = await _getUserQuery.ExecuteAsync(id);
 
@@ -172,7 +180,7 @@ namespace Web.API.Features.Authentication
         }
 
         [HttpGet("email/{email}")]
-        public async Task<ActionResult<UserInformationDTO>> GetUserByEmail([EmailAddress] string email)
+        public async Task<ActionResult<ApplicationUser>> GetUserByEmail([EmailAddress] string email)
         {
             var user = await _getUserByEmailQuery.ExecuteAsync(email);
 
@@ -183,7 +191,7 @@ namespace Web.API.Features.Authentication
 
         [HttpGet("current")]
         [Authorize]
-        public async Task<ActionResult<UserInformationDTO>> GetCurrent()
+        public async Task<ActionResult<ApplicationUser>> GetCurrent()
         {
             var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -197,6 +205,46 @@ namespace Web.API.Features.Authentication
             if (user == null) return NotFound();
 
             return Ok(user);
+        }
+
+        [HttpPost("role/add-user")]
+        [Authorize(Roles = "Admin, Manager")]
+        public async Task<ActionResult> AddUserToRole([EmailAddress] string email, string role)
+        {
+            var user = await _getUserByEmailQuery.ExecuteAsync(email);
+
+            if (user == null) return NotFound();
+
+            if (Enum.TryParse(role, true, out Roles roleEnum))
+            {
+                var result = await _addUserToRoleCommand.ExecuteAsync(new UserWithRoleDTO { User = user, Role = roleEnum });
+                if (result.Succeeded) return Ok();
+                return BadRequest(result);
+            }
+            else
+            {
+                return BadRequest("Invalid role");
+            }
+        }
+
+        [HttpPost("role/remove-user")]
+        [Authorize(Roles = "Admin, Manager")]
+        public async Task<ActionResult> RemoveUserFromRole([EmailAddress] string email, string role)
+        {
+            var user = await _getUserByEmailQuery.ExecuteAsync(email);
+
+            if (user == null) return NotFound();
+
+            if (Enum.TryParse(role, true, out Roles roleEnum))
+            {
+                var result = await _removeUserFromRoleCommand.ExecuteAsync(new UserWithRoleDTO { User = user, Role = roleEnum });
+                if (result.Succeeded) return Ok();
+                return BadRequest(result);
+            }
+            else
+            {
+                return BadRequest("Invalid role");
+            }
         }
     }
 }

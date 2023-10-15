@@ -1,4 +1,5 @@
-﻿using Web.API.Features.Authentication.Services;
+﻿using Web.API.Features.Authentication.Models;
+using Web.API.Features.Authentication.Services;
 using Web.Shared.DTOs;
 
 namespace Web.API.Features.Authentication.Queries
@@ -13,7 +14,7 @@ namespace Web.API.Features.Authentication.Queries
             _identityService = identityService;
         }
 
-        public async Task<UserInformationDTO> ExecuteAsync(string userId)
+        public async Task<ApplicationUser> ExecuteAsync(string userId)
         {
             if (string.IsNullOrEmpty(userId)) throw new ArgumentNullException(nameof(userId));
 
@@ -21,13 +22,7 @@ namespace Web.API.Features.Authentication.Queries
 
             if (user == null) return null;
 
-            return new UserInformationDTO
-            {
-                Id = user.Id,
-                Email = user.Email,
-                FirstName = user.UserProfile.FirstName,
-                LastName = user.UserProfile.LastName,
-            };
+            return user;
         }
     }
 }

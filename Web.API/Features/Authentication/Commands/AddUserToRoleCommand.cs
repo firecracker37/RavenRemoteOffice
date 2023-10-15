@@ -6,10 +6,10 @@ using Web.API.Features.Authentication.Services;
 
 public class AddUserToRoleCommand
 {
-    private readonly IdentityService _identityService;
+    private readonly IIdentityService _identityService;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public AddUserToRoleCommand(IdentityService identityService, IHttpContextAccessor httpContextAccessor)
+    public AddUserToRoleCommand(IIdentityService identityService, IHttpContextAccessor httpContextAccessor)
     {
         _identityService = identityService;
         _httpContextAccessor = httpContextAccessor;

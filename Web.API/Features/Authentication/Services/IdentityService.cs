@@ -197,5 +197,17 @@ namespace Web.API.Features.Authentication.Services
 
             return roles;
         }
+
+        public async Task<bool> IsUserInRole(UserWithRoleDTO userWithRole)
+        {
+            if (userWithRole == null) throw new ArgumentNullException(nameof(userWithRole));
+            if (userWithRole.User == null) throw new ArgumentNullException(nameof(userWithRole.User));
+            if (!Enum.IsDefined(typeof(Roles), userWithRole.Role))
+                throw new ArgumentOutOfRangeException(nameof(userWithRole.Role), "Invalid role specified");
+
+            var result = await _userManager.IsInRoleAsync(userWithRole.User, userWithRole.Role.ToString());
+
+            return result;
+        }
     }
 }

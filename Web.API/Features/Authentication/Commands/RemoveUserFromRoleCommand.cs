@@ -8,10 +8,10 @@ namespace Web.API.Features.Authentication.Commands
 {
     public class RemoveUserFromRoleCommand
     {
-        private readonly IdentityService _identityService;
+        private readonly IIdentityService _identityService;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public RemoveUserFromRoleCommand(IdentityService identityService, IHttpContextAccessor httpContextAccessor)
+        public RemoveUserFromRoleCommand(IIdentityService identityService, IHttpContextAccessor httpContextAccessor)
         {
             _identityService = identityService;
             _httpContextAccessor = httpContextAccessor;
