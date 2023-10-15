@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Web.API.Features.Authentication.Results;
+﻿using Web.API.Features.Authentication.Results;
 using Web.API.Features.Authentication.Services;
 using Web.Shared.DTOs;
 

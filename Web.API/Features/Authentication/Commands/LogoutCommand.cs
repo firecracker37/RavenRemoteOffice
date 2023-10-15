@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Web.API.Features.Authentication.Services;
+﻿using Web.API.Features.Authentication.Services;
 
 namespace Web.API.Features.Authentication.Commands
 {

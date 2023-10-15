@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Web.API.Features.Authentication.Models;
-using Web.API.Infrastructure.DbContexts;
-using Web.Shared.DTOs;
-using Web.API.Features.Authentication.Results;
 using Microsoft.EntityFrameworkCore;
 using Web.API.Constants;
 using Web.API.Features.Authentication.DTOs;
+using Web.API.Features.Authentication.Models;
+using Web.API.Features.Authentication.Results;
+using Web.API.Infrastructure.DbContexts;
+using Web.Shared.DTOs;
 
 namespace Web.API.Features.Authentication.Services
 {

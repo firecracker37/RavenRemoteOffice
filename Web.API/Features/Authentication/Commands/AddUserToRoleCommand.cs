@@ -1,11 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using System.Linq;
+﻿using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using Web.API.Constants;
 using Web.API.Features.Authentication.DTOs;
 using Web.API.Features.Authentication.Services;
-using Web.Shared.DTOs;
 
 public class AddUserToRoleCommand
 {
