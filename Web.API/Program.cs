@@ -6,6 +6,7 @@ using Web.API.Features.Authentication.Models;
 using Web.API.Features.Authentication.Queries;
 using Web.API.Features.Authentication.Services;
 using Web.API.Infrastructure.DbContexts;
+using Web.API.Initialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -68,6 +69,12 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
+    RoleSeed.EnsureCreatedAsync(roleManager).GetAwaiter().GetResult();
+}
 
 // Configure the HTTP request pipeline.
 app.UseHttpsRedirection();
