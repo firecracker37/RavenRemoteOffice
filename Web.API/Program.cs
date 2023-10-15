@@ -63,6 +63,8 @@ builder.Services.AddTransient<GetUserQuery>();
 builder.Services.AddTransient<GetUserByEmailQuery>();
 builder.Services.AddTransient<VerifyUserEmailCommand>();
 builder.Services.AddTransient<SendEmailVerificationEmailCommand>();
+builder.Services.AddTransient<AddUserToRoleCommand>();
+builder.Services.AddTransient<RemoveUserFromRoleCommand>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

@@ -4,6 +4,8 @@ using Web.API.Infrastructure.DbContexts;
 using Web.Shared.DTOs;
 using Web.API.Features.Authentication.Results;
 using Microsoft.EntityFrameworkCore;
+using Web.API.Constants;
+using Web.API.Features.Authentication.DTOs;
 
 namespace Web.API.Features.Authentication.Services
 {
@@ -11,14 +13,17 @@ namespace Web.API.Features.Authentication.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly ApplicationDbContext _dbContext;
 
         public IdentityService(
             UserManager<ApplicationUser> userManager,
+            RoleManager<ApplicationRole> roleManager,
             ApplicationDbContext dbContext,
             SignInManager<ApplicationUser> signInManager)
         {
             _userManager = userManager;
+            _roleManager = roleManager;
             _dbContext = dbContext;
             _signInManager = signInManager;
         }
@@ -152,6 +157,45 @@ namespace Web.API.Features.Authentication.Services
             var result = await _userManager.IsEmailConfirmedAsync(foundUser);
 
             return result;
+        }
+
+        public async Task<IdentityResult> AddUserToRoleAsync(UserWithRoleDTO userWithRole)
+        {
+            if (userWithRole == null) throw new ArgumentNullException(nameof(userWithRole));
+            if (userWithRole.User == null) throw new ArgumentNullException(nameof(userWithRole.User));
+            if (!Enum.IsDefined(typeof(Roles), userWithRole.Role))
+                throw new ArgumentOutOfRangeException(nameof(userWithRole.Role), "Invalid role specified");
+
+            string roleName = userWithRole.Role.ToString();
+            var result = await _userManager.AddToRoleAsync(userWithRole.User, roleName);
+
+            return result;
+        }
+
+        public async Task<IdentityResult> RemoveUserFromRoleAsync(UserWithRoleDTO userWithRole)
+        {
+            if (userWithRole == null) throw new ArgumentNullException(nameof(userWithRole));
+            if (userWithRole.User == null) throw new ArgumentNullException(nameof(userWithRole.User));
+            if (!Enum.IsDefined(typeof(Roles), userWithRole.Role))
+                throw new ArgumentOutOfRangeException(nameof(userWithRole.Role), "Invalid role specified");
+
+            string roleName = userWithRole.Role.ToString();
+            var result = await _userManager.RemoveFromRoleAsync(userWithRole.User, roleName);
+
+            return result;
+        }
+
+        public async Task<IList<Roles>> GetUserRolesAsync(ApplicationUser user)
+        {
+            if (user == null) throw new ArgumentNullException(nameof(user));
+
+            var roleNames = await _userManager.GetRolesAsync(user);
+            var roles = roleNames
+                .Where(roleName => Enum.TryParse(typeof(Roles), roleName, out _))
+                .Select(roleName => (Roles)Enum.Parse(typeof(Roles), roleName))
+                .ToList();
+
+            return roles;
         }
     }
 }
