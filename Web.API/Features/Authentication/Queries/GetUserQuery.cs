@@ -1,6 +1,5 @@
 ﻿using Web.API.Features.Authentication.Models;
 using Web.API.Features.Authentication.Services;
-using Web.Shared.DTOs;
 
 namespace Web.API.Features.Authentication.Queries
 {

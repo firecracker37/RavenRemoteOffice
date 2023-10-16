@@ -125,7 +125,7 @@ namespace Web.API.Features.Authentication.Services
 
         public async Task<EmailConfirmationTokenResult> GenerateEmailConfirmationTokenAsync(string email)
         {
-            if (string.IsNullOrEmpty(email)) 
+            if (string.IsNullOrEmpty(email))
                 return new EmailConfirmationTokenResult { Success = false, ErrorMessage = "Email was empty or null" };
 
             var user = await _userManager.FindByEmailAsync(email);

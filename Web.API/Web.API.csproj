@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <Folder Include="Features\Authentication\Validators\" />
+    <Folder Include="logs\" />
   </ItemGroup>
 
 </Project>

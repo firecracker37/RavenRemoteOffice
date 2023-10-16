@@ -13,7 +13,7 @@ namespace Web.API.Features.Authentication.Commands
         private readonly ILogger<RegisterCommand> _logger;
 
         public RegisterCommand(
-            IIdentityService identityService, 
+            IIdentityService identityService,
             SendEmailVerificationEmailCommand sendEmailVerificationEmailCommand,
             ILogger<RegisterCommand> logger)
         {

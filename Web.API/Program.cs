@@ -1,15 +1,15 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Serilog.Events;
 using Serilog;
+using Serilog.Events;
+using Serilog.Filters;
 using Web.API.Features.Authentication.Commands;
 using Web.API.Features.Authentication.Models;
 using Web.API.Features.Authentication.Queries;
 using Web.API.Features.Authentication.Services;
 using Web.API.Infrastructure.DbContexts;
 using Web.API.Initialization;
-using Serilog.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -93,6 +93,10 @@ using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
     RoleSeed.EnsureCreatedAsync(roleManager).GetAwaiter().GetResult();
+
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>(); // Get DbContext
+    UserSeed.EnsureCreatedAsync(userManager, roleManager, dbContext).GetAwaiter().GetResult(); // Pass DbContext
 }
 
 // Configure the HTTP request pipeline.

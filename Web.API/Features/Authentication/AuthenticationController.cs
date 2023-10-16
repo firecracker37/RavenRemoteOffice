@@ -25,7 +25,7 @@ namespace Web.API.Features.Authentication
         private readonly RemoveUserFromRoleCommand _removeUserFromRoleCommand;
         private readonly GetUserQuery _getUserQuery;
         private readonly GetUserByEmailQuery _getUserByEmailQuery;
-        private readonly GetUserRolesQuery  _getUserRolesQuery;
+        private readonly GetUserRolesQuery _getUserRolesQuery;
         private readonly ILogger<AuthenticationController> _logger;
 
         public AuthenticationController(
@@ -288,7 +288,7 @@ namespace Web.API.Features.Authentication
         [Authorize]
         public async Task<ActionResult> GetUserRoles([EmailAddress] string email)
         {
-            if(string.IsNullOrEmpty(email)) return NotFound();
+            if (string.IsNullOrEmpty(email)) return NotFound();
 
             var user = await _getUserByEmailQuery.ExecuteAsync(email);
             if (user == null) return NotFound();
