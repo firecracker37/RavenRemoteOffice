@@ -14,6 +14,7 @@ namespace Web.Shared.DTOs
 
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; }
+
         [Required]
         [StringLength(50, ErrorMessage = "First name cannot be longer than 50 characters.")]
         public string FirstName { get; set; }

@@ -20,5 +20,7 @@ namespace Web.API.Features.Authentication.Services
         Task<IdentityResult> AddUserToRoleAsync(UserWithRoleDTO userWithRole);
         Task<IdentityResult> RemoveUserFromRoleAsync(UserWithRoleDTO userWithRole);
         Task<IList<Roles>> GetUserRolesAsync(ApplicationUser user);
+        Task<string> RequestPasswordResetAsync(ApplicationUser user);
+        Task<IdentityResult> ResetUserPasswordAsync(ResetUserPasswordDTO model);
     }
 }

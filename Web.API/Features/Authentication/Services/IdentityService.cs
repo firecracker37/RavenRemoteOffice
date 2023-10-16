@@ -273,5 +273,30 @@ namespace Web.API.Features.Authentication.Services
 
             return result;
         }
+
+        public async Task<string> RequestPasswordResetAsync(ApplicationUser user)
+        {
+            if (user == null) return null;
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            return token;
+        }
+
+        public async Task<IdentityResult> ResetUserPasswordAsync(ResetUserPasswordDTO model)
+        {
+            var user = await _userManager.FindByIdAsync(model.UserId);
+            if (user == null)
+            {
+                _logger.LogWarning($"Could not update password for user: {model.UserId}. No user with that email address was found.");
+                return IdentityResult.Failed(new IdentityError { Description = $"User with email = {model.UserId} cannot be found." });
+            }
+
+            var result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
+
+            if (result.Succeeded)
+            {
+                _logger.LogInformation($"Password for user {user.Email} was successfully updated in the database");
+            }
+            return result;
+        }
     }
 }

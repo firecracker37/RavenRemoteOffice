@@ -69,6 +69,8 @@ builder.Services.AddTransient<VerifyUserEmailCommand>();
 builder.Services.AddTransient<SendEmailVerificationEmailCommand>();
 builder.Services.AddTransient<AddUserToRoleCommand>();
 builder.Services.AddTransient<RemoveUserFromRoleCommand>();
+builder.Services.AddTransient<RequestPasswordResetCommand>();
+builder.Services.AddTransient<ResetUserPasswordCommand>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

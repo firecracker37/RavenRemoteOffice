@@ -26,6 +26,8 @@ namespace Web.API.Features.Authentication
         private readonly GetUserQuery _getUserQuery;
         private readonly GetUserByEmailQuery _getUserByEmailQuery;
         private readonly GetUserRolesQuery _getUserRolesQuery;
+        private readonly RequestPasswordResetCommand _requestPasswordResetCommand;
+        private readonly ResetUserPasswordCommand _resetUserPasswordCommand;
         private readonly ILogger<AuthenticationController> _logger;
 
         public AuthenticationController(
@@ -40,6 +42,8 @@ namespace Web.API.Features.Authentication
             GetUserQuery getUserQuery,
             GetUserByEmailQuery getUserByEmailQuery,
             GetUserRolesQuery getUserRolesQuery,
+            RequestPasswordResetCommand requestPasswordResetCommand,
+            ResetUserPasswordCommand resetUserPasswordCommand,
             ILogger<AuthenticationController> logger)
         {
             _httpContextAccessor = httpContextAccessor;
@@ -49,9 +53,12 @@ namespace Web.API.Features.Authentication
             _sendEmailVerificationEmailCommand = sendEmailVerificationEmailCommand;
             _verifyUserEmailCommand = verifyUserEmailCommand;
             _addUserToRoleCommand = addUserToRoleCommand;
+            _removeUserFromRoleCommand = removeUserFromRoleCommand;
             _getUserQuery = getUserQuery;
             _getUserByEmailQuery = getUserByEmailQuery;
             _getUserRolesQuery = getUserRolesQuery;
+            _requestPasswordResetCommand = requestPasswordResetCommand;
+            _resetUserPasswordCommand = resetUserPasswordCommand;
             _logger = logger;
         }
 
@@ -158,6 +165,46 @@ namespace Web.API.Features.Authentication
             {
                 return BadRequest(result.ErrorMessage);
             }
+        }
+
+        [HttpPost("request-password-reset")]
+        public async Task<IActionResult> RequestPasswordReset([FromBody] string email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                return BadRequest("Email is required.");
+            }
+
+            var result = await _requestPasswordResetCommand.ExecuteAsync(email);
+
+            if (result.Success)
+            {
+                return Ok("Password reset email sent successfully.");
+            }
+            else
+            {
+                return BadRequest(result.ErrorMessage);
+            }
+        }
+        [HttpPost("reset-user-password")]
+        public async Task<IActionResult> ResetUserPassword([FromBody] ResetUserPasswordDTO model)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogError("Model state for ResetUserPassword is invalid.");
+                var errorMessages = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return BadRequest(new { Errors = errorMessages });
+            }
+
+            var result = await _resetUserPasswordCommand.ExecuteAsync(model);
+
+            if (result.Succeeded) return Ok("Password reset successful");
+
+            // Logging detailed error messages
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            _logger.LogError($"Password reset failed for user ID {model.UserId}. Errors: {errors}");
+
+            return BadRequest($"Password reset failed!");
         }
 
         [HttpGet("{id}")]
