@@ -298,5 +298,25 @@ namespace Web.API.Features.Authentication.Services
             }
             return result;
         }
+
+        public async Task<IdentityResult> ChangeUserPasswordAsync(ApplicationUser user, ChangePasswordDTO model)
+        {
+            if (user == null)
+            {
+                _logger.LogError("User is null in ChangeUserPasswordAsync.");
+                return IdentityResult.Failed(new IdentityError { Description = "An error occurred while processing your request." });
+            }
+
+            var passwordCheck = await _userManager.CheckPasswordAsync(user, model.CurrentPassword);
+
+            if (!passwordCheck)
+            {
+                _logger.LogWarning($"Incorrect current password for user {user.Id}.");
+                return IdentityResult.Failed(new IdentityError { Description = "Incorrect current password." });
+            }
+
+            return await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+        }
+    }
     }
 }

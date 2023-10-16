@@ -14,7 +14,6 @@ using Web.API.Initialization;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add Services to the Builder
-
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddSingleton<IEmailService, EmailServiceDummy>();
@@ -35,8 +34,17 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
+
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+// Configure application cookie
 builder.Services.ConfigureApplicationCookie(config =>
 {
+    config.Cookie.HttpOnly = true;
+    config.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    config.ExpireTimeSpan = TimeSpan.FromHours(4);
+    config.SlidingExpiration = true;
+
     config.Events = new CookieAuthenticationEvents
     {
         OnRedirectToLogin = context =>
@@ -47,17 +55,7 @@ builder.Services.ConfigureApplicationCookie(config =>
     };
 });
 
-builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-
-// Configure application cookie
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.Cookie.HttpOnly = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    options.ExpireTimeSpan = TimeSpan.FromHours(4);
-    options.SlidingExpiration = true;
-});
-
+// Register Authentication related commands and services
 builder.Services.AddTransient<IIdentityService, IdentityService>();
 builder.Services.AddTransient<RegisterCommand>();
 builder.Services.AddTransient<LoginCommand>();
@@ -71,6 +69,7 @@ builder.Services.AddTransient<AddUserToRoleCommand>();
 builder.Services.AddTransient<RemoveUserFromRoleCommand>();
 builder.Services.AddTransient<RequestPasswordResetCommand>();
 builder.Services.AddTransient<ResetUserPasswordCommand>();
+builder.Services.AddTransient<ChangeUserPasswordCommand>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

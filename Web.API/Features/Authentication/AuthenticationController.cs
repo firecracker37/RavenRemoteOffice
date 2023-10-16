@@ -28,6 +28,7 @@ namespace Web.API.Features.Authentication
         private readonly GetUserRolesQuery _getUserRolesQuery;
         private readonly RequestPasswordResetCommand _requestPasswordResetCommand;
         private readonly ResetUserPasswordCommand _resetUserPasswordCommand;
+        private readonly ChangeUserPasswordCommand _changeUserPasswordCommand;
         private readonly ILogger<AuthenticationController> _logger;
 
         public AuthenticationController(
@@ -44,6 +45,7 @@ namespace Web.API.Features.Authentication
             GetUserRolesQuery getUserRolesQuery,
             RequestPasswordResetCommand requestPasswordResetCommand,
             ResetUserPasswordCommand resetUserPasswordCommand,
+            ChangeUserPasswordCommand changeUserPasswordCommand,
             ILogger<AuthenticationController> logger)
         {
             _httpContextAccessor = httpContextAccessor;
@@ -59,6 +61,7 @@ namespace Web.API.Features.Authentication
             _getUserRolesQuery = getUserRolesQuery;
             _requestPasswordResetCommand = requestPasswordResetCommand;
             _resetUserPasswordCommand = resetUserPasswordCommand;
+            _changeUserPasswordCommand = changeUserPasswordCommand;
             _logger = logger;
         }
 
@@ -205,6 +208,34 @@ namespace Web.API.Features.Authentication
             _logger.LogError($"Password reset failed for user ID {model.UserId}. Errors: {errors}");
 
             return BadRequest($"Password reset failed!");
+        }
+        [HttpGet("change-user-password")]
+        [Authorize]
+        public async Task<IActionResult> ChangeUserPassword([FromBody] ChangePasswordDTO model)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogError("Model state for ChangeUserPassword is invalid.");
+                var errorMessages = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return BadRequest(new { Errors = errorMessages });
+            }
+
+            var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var user = await _getUserQuery.ExecuteAsync(userId);
+
+            if (user == null) return NotFound();
+
+            var result = await _changeUserPasswordCommand.ExecuteAsync(user, model);
+            if (result.Succeeded) return Ok("Password changed successfully");
+
+            // Logging detailed error messages
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            _logger.LogError($"Password change failed for user ID {model.UserId}. Errors: {errors}");
+
+            return BadRequest($"Password change failed!");
         }
 
         [HttpGet("{id}")]
