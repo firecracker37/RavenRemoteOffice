@@ -17,28 +17,61 @@ public class AddUserToRoleCommand
 
     public async Task<IdentityResult> ExecuteAsync(UserWithRoleDTO userWithRole)
     {
-        if (userWithRole == null) throw new ArgumentNullException(nameof(userWithRole));
-        if (userWithRole.User == null) throw new ArgumentNullException(nameof(userWithRole.User));
+        if (userWithRole == null)
+        {
+            return IdentityResult.Failed(new IdentityError
+            {
+                Code = "NullUserWithRole",
+                Description = $"{nameof(userWithRole)} cannot be null"
+            });
+        }
+
+        if (userWithRole.User == null)
+        {
+            return IdentityResult.Failed(new IdentityError
+            {
+                Code = "NullUser",
+                Description = $"{nameof(userWithRole.User)} cannot be null"
+            });
+        }
+
         if (!Enum.IsDefined(typeof(Roles), userWithRole.Role))
-            throw new ArgumentOutOfRangeException(nameof(userWithRole.Role), "Invalid role specified");
+        {
+            return IdentityResult.Failed(new IdentityError
+            {
+                Code = "InvalidRole",
+                Description = "Invalid role specified"
+            });
+        }
 
         var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
         if (currentUserId == null)
         {
-            throw new UnauthorizedAccessException("User is not authorized");
+            return IdentityResult.Failed(new IdentityError
+            {
+                Code = "Unauthorized",
+                Description = "User is not authorized"
+            });
         }
 
         var currentUser = await _identityService.FindUserByIdAsync(currentUserId);
         if (currentUser == null)
         {
-            throw new UnauthorizedAccessException("User is not found");
+            return IdentityResult.Failed(new IdentityError
+            {
+                Code = "UserNotFound",
+                Description = "User is not found"
+            });
         }
 
         var currentUserRoles = await _identityService.GetUserRolesAsync(currentUser);
         if (!currentUserRoles.Contains(Roles.Admin) && !currentUserRoles.Contains(Roles.Manager))
-
         {
-            throw new UnauthorizedAccessException("User does not have permission to assign roles");
+            return IdentityResult.Failed(new IdentityError
+            {
+                Code = "PermissionDenied",
+                Description = "User does not have permission to assign roles"
+            });
         }
 
         return await _identityService.AddUserToRoleAsync(userWithRole);

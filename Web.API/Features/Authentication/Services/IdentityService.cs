@@ -33,7 +33,7 @@ namespace Web.API.Features.Authentication.Services
 
         public async Task<ApplicationUser> FindUserByIdAsync(string userId)
         {
-            if (string.IsNullOrEmpty(userId)) throw new ArgumentNullException(nameof(userId));
+            if (string.IsNullOrEmpty(userId)) return null;
 
             var user = await _dbContext.Users
                              .Include(u => u.UserProfile)
@@ -45,7 +45,7 @@ namespace Web.API.Features.Authentication.Services
 
         public async Task<ApplicationUser> FindUserByEmailAsync(string email)
         {
-            if (string.IsNullOrEmpty(email)) throw new ArgumentNullException(nameof(email));
+            if (string.IsNullOrEmpty(email)) return null;
 
             var user = await _dbContext.Users
                              .Include(u => u.UserProfile)
@@ -56,7 +56,14 @@ namespace Web.API.Features.Authentication.Services
 
         public async Task<IdentityResult> RegisterUserAsync(RegisterUserDTO model)
         {
-            if (model == null) throw new ArgumentNullException(nameof(model));
+            if (model == null)
+            {
+                return IdentityResult.Failed(new IdentityError
+                {
+                    Code = "NullModel",
+                    Description = $"{nameof(model)} cannot be null"
+                });
+            }
 
             using (var transaction = await _dbContext.Database.BeginTransactionAsync())
             {
@@ -99,7 +106,7 @@ namespace Web.API.Features.Authentication.Services
 
         public async Task<SignInResult> LoginAsync(LoginUserDTO model)
         {
-            if (model == null) throw new ArgumentNullException(nameof(model));
+            if (model == null) return SignInResult.Failed;
 
             var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, false, lockoutOnFailure: false);
 
@@ -118,7 +125,8 @@ namespace Web.API.Features.Authentication.Services
 
         public async Task<EmailConfirmationTokenResult> GenerateEmailConfirmationTokenAsync(string email)
         {
-            if (string.IsNullOrEmpty(email)) throw new ArgumentNullException(nameof(email));
+            if (string.IsNullOrEmpty(email)) 
+                return new EmailConfirmationTokenResult { Success = false, ErrorMessage = "Email was empty or null" };
 
             var user = await _userManager.FindByEmailAsync(email);
 
@@ -137,8 +145,22 @@ namespace Web.API.Features.Authentication.Services
 
         public async Task<IdentityResult> ConfirmEmailAsync(string userId, string token)
         {
-            if (string.IsNullOrEmpty(userId)) throw new ArgumentNullException(nameof(userId));
-            if (string.IsNullOrEmpty(token)) throw new ArgumentNullException(nameof(token));
+            if (string.IsNullOrEmpty(userId))
+            {
+                return IdentityResult.Failed(new IdentityError
+                {
+                    Code = "NullModel",
+                    Description = $"{nameof(userId)} cannot be null"
+                });
+            }
+            if (string.IsNullOrEmpty(token))
+            {
+                return IdentityResult.Failed(new IdentityError
+                {
+                    Code = "NullModel",
+                    Description = $"{nameof(token)} cannot be null"
+                });
+            }
 
             var user = await _userManager.FindByIdAsync(userId);
 
@@ -151,7 +173,7 @@ namespace Web.API.Features.Authentication.Services
 
         public async Task<bool> IsEmailConfirmedAsync(ApplicationUser user)
         {
-            if (user == null) throw new ArgumentNullException(nameof(user));
+            if (user == null) return false;
 
             var foundUser = await _userManager.FindByIdAsync(user.Id);
 
@@ -164,10 +186,30 @@ namespace Web.API.Features.Authentication.Services
 
         public async Task<IdentityResult> AddUserToRoleAsync(UserWithRoleDTO userWithRole)
         {
-            if (userWithRole == null) throw new ArgumentNullException(nameof(userWithRole));
-            if (userWithRole.User == null) throw new ArgumentNullException(nameof(userWithRole.User));
+            if (userWithRole == null)
+            {
+                return IdentityResult.Failed(new IdentityError
+                {
+                    Code = "NullModel",
+                    Description = $"{nameof(userWithRole)} cannot be null"
+                });
+            }
+            if (userWithRole.User == null)
+            {
+                return IdentityResult.Failed(new IdentityError
+                {
+                    Code = "NullModel",
+                    Description = $"{nameof(userWithRole.User)} cannot be null"
+                });
+            }
             if (!Enum.IsDefined(typeof(Roles), userWithRole.Role))
-                throw new ArgumentOutOfRangeException(nameof(userWithRole.Role), "Invalid role specified");
+            {
+                return IdentityResult.Failed(new IdentityError
+                {
+                    Code = "NullModel",
+                    Description = $"{nameof(userWithRole.Role)} is not a valid role"
+                });
+            }
 
             string roleName = userWithRole.Role.ToString();
             var result = await _userManager.AddToRoleAsync(userWithRole.User, roleName);
@@ -177,10 +219,30 @@ namespace Web.API.Features.Authentication.Services
 
         public async Task<IdentityResult> RemoveUserFromRoleAsync(UserWithRoleDTO userWithRole)
         {
-            if (userWithRole == null) throw new ArgumentNullException(nameof(userWithRole));
-            if (userWithRole.User == null) throw new ArgumentNullException(nameof(userWithRole.User));
+            if (userWithRole == null)
+            {
+                return IdentityResult.Failed(new IdentityError
+                {
+                    Code = "NullModel",
+                    Description = $"{nameof(userWithRole)} cannot be null"
+                });
+            }
+            if (userWithRole.User == null)
+            {
+                return IdentityResult.Failed(new IdentityError
+                {
+                    Code = "NullModel",
+                    Description = $"{nameof(userWithRole.User)} cannot be null"
+                });
+            }
             if (!Enum.IsDefined(typeof(Roles), userWithRole.Role))
-                throw new ArgumentOutOfRangeException(nameof(userWithRole.Role), "Invalid role specified");
+            {
+                return IdentityResult.Failed(new IdentityError
+                {
+                    Code = "NullModel",
+                    Description = $"{nameof(userWithRole.Role)} is not a valid role"
+                });
+            }
 
             string roleName = userWithRole.Role.ToString();
             var result = await _userManager.RemoveFromRoleAsync(userWithRole.User, roleName);
@@ -190,7 +252,7 @@ namespace Web.API.Features.Authentication.Services
 
         public async Task<IList<Roles>> GetUserRolesAsync(ApplicationUser user)
         {
-            if (user == null) throw new ArgumentNullException(nameof(user));
+            if (user == null) return new List<Roles>();
 
             var roleNames = await _userManager.GetRolesAsync(user);
             var roles = roleNames
@@ -203,10 +265,9 @@ namespace Web.API.Features.Authentication.Services
 
         public async Task<bool> IsUserInRole(UserWithRoleDTO userWithRole)
         {
-            if (userWithRole == null) throw new ArgumentNullException(nameof(userWithRole));
-            if (userWithRole.User == null) throw new ArgumentNullException(nameof(userWithRole.User));
-            if (!Enum.IsDefined(typeof(Roles), userWithRole.Role))
-                throw new ArgumentOutOfRangeException(nameof(userWithRole.Role), "Invalid role specified");
+            if (userWithRole == null) return false;
+            if (userWithRole.User == null) return false;
+            if (!Enum.IsDefined(typeof(Roles), userWithRole.Role)) return false;
 
             var result = await _userManager.IsInRoleAsync(userWithRole.User, userWithRole.Role.ToString());
 

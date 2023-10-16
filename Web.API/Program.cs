@@ -64,6 +64,7 @@ builder.Services.AddTransient<LoginCommand>();
 builder.Services.AddTransient<LogoutCommand>();
 builder.Services.AddTransient<GetUserQuery>();
 builder.Services.AddTransient<GetUserByEmailQuery>();
+builder.Services.AddTransient<GetUserRolesQuery>();
 builder.Services.AddTransient<VerifyUserEmailCommand>();
 builder.Services.AddTransient<SendEmailVerificationEmailCommand>();
 builder.Services.AddTransient<AddUserToRoleCommand>();

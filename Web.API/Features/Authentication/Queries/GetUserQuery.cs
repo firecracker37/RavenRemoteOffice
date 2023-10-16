@@ -16,7 +16,7 @@ namespace Web.API.Features.Authentication.Queries
 
         public async Task<ApplicationUser> ExecuteAsync(string userId)
         {
-            if (string.IsNullOrEmpty(userId)) throw new ArgumentNullException(nameof(userId));
+            if (string.IsNullOrEmpty(userId)) return null;
 
             var user = await _identityService.FindUserByIdAsync(userId);
 

@@ -25,6 +25,7 @@ namespace Web.API.Features.Authentication
         private readonly RemoveUserFromRoleCommand _removeUserFromRoleCommand;
         private readonly GetUserQuery _getUserQuery;
         private readonly GetUserByEmailQuery _getUserByEmailQuery;
+        private readonly GetUserRolesQuery  _getUserRolesQuery;
         private readonly ILogger<AuthenticationController> _logger;
 
         public AuthenticationController(
@@ -38,6 +39,7 @@ namespace Web.API.Features.Authentication
             RemoveUserFromRoleCommand removeUserFromRoleCommand,
             GetUserQuery getUserQuery,
             GetUserByEmailQuery getUserByEmailQuery,
+            GetUserRolesQuery getUserRolesQuery,
             ILogger<AuthenticationController> logger)
         {
             _httpContextAccessor = httpContextAccessor;
@@ -49,6 +51,7 @@ namespace Web.API.Features.Authentication
             _addUserToRoleCommand = addUserToRoleCommand;
             _getUserQuery = getUserQuery;
             _getUserByEmailQuery = getUserByEmailQuery;
+            _getUserRolesQuery = getUserRolesQuery;
             _logger = logger;
         }
 
@@ -57,7 +60,7 @@ namespace Web.API.Features.Authentication
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState); // Or handle validation errors as needed
+                return BadRequest(ModelState);
             }
 
             var registerResult = await _registerCommand.ExecuteAsync(model);
@@ -68,7 +71,7 @@ namespace Web.API.Features.Authentication
             }
             else
             {
-                return BadRequest(registerResult.Errors); // Or handle the error as needed
+                return BadRequest(registerResult.Errors);
             }
         }
 
@@ -127,13 +130,13 @@ namespace Web.API.Features.Authentication
             if (result.Succeeded)
             {
                 _logger.LogInformation($"User with {model.UserId} has confirmed their Email");
-                return Ok("Email confirmed successfully."); // or return another appropriate response
+                return Ok("Email confirmed successfully.");
             }
             else
             {
                 _logger.LogWarning($"Error occured while verifying email for user with ID: {model.UserId}");
                 _logger.LogWarning(result.Errors.ToString());
-                return BadRequest(result.Errors); // or handle the error as needed
+                return BadRequest(result.Errors);
             }
         }
 
@@ -185,7 +188,7 @@ namespace Web.API.Features.Authentication
 
             if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized(); // This should never happen if the user is authenticated
+                return Unauthorized();
             }
 
             var user = await _getUserQuery.ExecuteAsync(userId);
@@ -206,13 +209,36 @@ namespace Web.API.Features.Authentication
             if (Enum.TryParse(role, true, out Roles roleEnum))
             {
                 var result = await _addUserToRoleCommand.ExecuteAsync(new UserWithRoleDTO { User = user, Role = roleEnum });
+
                 if (result.Succeeded) return Ok();
-                return BadRequest(result);
+
+                var error = result.Errors.FirstOrDefault();
+
+                if (error != null)
+                {
+                    switch (error.Code)
+                    {
+                        case "NullUserWithRole":
+                        case "NullUser":
+                        case "InvalidRole":
+                            return BadRequest(error.Description);
+
+                        case "Unauthorized":
+                        case "UserNotFound":
+                        case "PermissionDenied":
+                            return Unauthorized(error.Description);
+
+                        default:
+                            return BadRequest("An unexpected error occurred");
+                    }
+                }
             }
             else
             {
                 return BadRequest("Invalid role");
             }
+
+            return BadRequest("An unexpected error occurred");
         }
 
         [HttpPost("role/remove-user")]
@@ -226,13 +252,68 @@ namespace Web.API.Features.Authentication
             if (Enum.TryParse(role, true, out Roles roleEnum))
             {
                 var result = await _removeUserFromRoleCommand.ExecuteAsync(new UserWithRoleDTO { User = user, Role = roleEnum });
+
                 if (result.Succeeded) return Ok();
-                return BadRequest(result);
+
+                var error = result.Errors.FirstOrDefault();
+
+                if (error != null)
+                {
+                    switch (error.Code)
+                    {
+                        case "NullUserWithRole":
+                        case "NullUser":
+                        case "InvalidRole":
+                            return BadRequest(error.Description);
+
+                        case "Unauthorized":
+                        case "UserNotFound":
+                        case "PermissionDenied":
+                            return Unauthorized(error.Description);
+
+                        default:
+                            return BadRequest("An unexpected error occurred");
+                    }
+                }
             }
             else
             {
                 return BadRequest("Invalid role");
             }
+
+            return BadRequest("An unexpected error occurred");
         }
+
+        [HttpGet("role/get-user-roles")]
+        [Authorize]
+        public async Task<ActionResult> GetUserRoles([EmailAddress] string email)
+        {
+            if(string.IsNullOrEmpty(email)) return NotFound();
+
+            var user = await _getUserByEmailQuery.ExecuteAsync(email);
+            if (user == null) return NotFound();
+
+            var userRoles = await _getUserRolesQuery.ExecuteAsync(user);
+
+            if (userRoles == null || !userRoles.Any()) return NotFound("No roles assigned to the user");
+            return Ok(userRoles);
+        }
+
+        [HttpGet("role/get-current-user-roles")]
+        [Authorize]
+        public async Task<ActionResult> GetCurrentUsersRoles()
+        {
+            var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized("User is not logged in");
+
+            var user = await _getUserQuery.ExecuteAsync(userId);
+            if (user == null) return NotFound("User not found");
+
+            var userRoles = await _getUserRolesQuery.ExecuteAsync(user);
+
+            if (userRoles == null || !userRoles.Any()) return NotFound("No roles assigned to the user");
+            return Ok(userRoles);
+        }
+
     }
 }

@@ -8,11 +8,16 @@ namespace Web.API.Features.Authentication.Commands
     {
         private readonly IIdentityService _identityService;
         private readonly SendEmailVerificationEmailCommand _sendEmailVerificationEmailCommand;
+        private readonly ILogger<RegisterCommand> _logger;
 
-        public RegisterCommand(IIdentityService identityService, SendEmailVerificationEmailCommand sendEmailVerificationEmailCommand)
+        public RegisterCommand(
+            IIdentityService identityService, 
+            SendEmailVerificationEmailCommand sendEmailVerificationEmailCommand,
+            ILogger<RegisterCommand> logger)
         {
             _identityService = identityService;
             _sendEmailVerificationEmailCommand = sendEmailVerificationEmailCommand;
+            _logger = logger;
         }
 
         public async Task<IdentityResult> ExecuteAsync(RegisterUserDTO model)
@@ -21,7 +26,8 @@ namespace Web.API.Features.Authentication.Commands
 
             if (result.Succeeded)
             {
-                await _sendEmailVerificationEmailCommand.ExecuteAsync(model.Email);
+                var emailResult = await _sendEmailVerificationEmailCommand.ExecuteAsync(model.Email);
+                if (!emailResult.Success) _logger.LogWarning($"Unable to send email verification to {model.Email}. Message: {emailResult.ErrorMessage}");
             }
             return result;
         }

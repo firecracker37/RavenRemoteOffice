@@ -22,7 +22,8 @@ namespace Web.API.Features.Authentication.Commands
 
         public async Task<EmailSendingResult> ExecuteAsync(string email)
         {
-            if (string.IsNullOrEmpty(email)) throw new ArgumentNullException(nameof(email));
+            if (string.IsNullOrEmpty(email))
+                return new EmailSendingResult { Success = false, ErrorMessage = "Email was null or empty" };
 
             var user = await _identityService.FindUserByEmailAsync(email);
 
