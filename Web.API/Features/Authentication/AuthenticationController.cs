@@ -278,7 +278,7 @@ namespace Web.API.Features.Authentication
 
         [HttpPost("role/add-user")]
         [Authorize(Roles = "Admin, Manager")]
-        public async Task<ActionResult> AddUserToRole([EmailAddress] string email, string role)
+        public async Task<IActionResult> AddUserToRole([EmailAddress] string email, string role)
         {
             var user = await _getUserByEmailQuery.ExecuteAsync(email);
 
@@ -321,7 +321,7 @@ namespace Web.API.Features.Authentication
 
         [HttpPost("role/remove-user")]
         [Authorize(Roles = "Admin, Manager")]
-        public async Task<ActionResult> RemoveUserFromRole([EmailAddress] string email, string role)
+        public async Task<IActionResult> RemoveUserFromRole([EmailAddress] string email, string role)
         {
             var user = await _getUserByEmailQuery.ExecuteAsync(email);
 
@@ -364,7 +364,7 @@ namespace Web.API.Features.Authentication
 
         [HttpGet("role/get-user-roles")]
         [Authorize]
-        public async Task<ActionResult> GetUserRoles([EmailAddress] string email)
+        public async Task<ActionResult<IEnumerable<string>>> GetUserRoles([EmailAddress] string email)
         {
             if (string.IsNullOrEmpty(email)) return BadRequest("Email is required");
 
@@ -379,7 +379,7 @@ namespace Web.API.Features.Authentication
 
         [HttpGet("role/get-current-user-roles")]
         [Authorize]
-        public async Task<ActionResult> GetCurrentUsersRoles()
+        public async Task<ActionResult<IEnumerable<string>>> GetCurrentUsersRoles()
         {
             var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId)) return Unauthorized("User is not logged in");
