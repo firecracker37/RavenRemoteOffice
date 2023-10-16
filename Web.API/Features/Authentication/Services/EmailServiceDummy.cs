@@ -35,7 +35,7 @@ namespace Web.API.Features.Authentication.Services
                 var projectDirectory = Directory.GetCurrentDirectory();
 
                 // Ensure the /emails directory exists
-                var emailsDirectory = Path.Combine(projectDirectory, "emails");
+                var emailsDirectory = Path.Combine(projectDirectory, "logs/emails");
                 Directory.CreateDirectory(emailsDirectory);
 
                 // Write the email content to an HTML file in the /emails directory

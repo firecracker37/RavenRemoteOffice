@@ -22,6 +22,6 @@ namespace Web.API.Features.Authentication.Services
         Task<IList<Roles>> GetUserRolesAsync(ApplicationUser user);
         Task<string> RequestPasswordResetAsync(ApplicationUser user);
         Task<IdentityResult> ResetUserPasswordAsync(ResetUserPasswordDTO model);
-        Task<IdentityResult> ChangeUserPasswordAsync(ApplicationUser user, ChangePasswordDTO model)
+        Task<IdentityResult> ChangeUserPasswordAsync(ApplicationUser user, ChangePasswordDTO model);
     }
 }

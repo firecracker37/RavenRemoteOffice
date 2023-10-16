@@ -233,7 +233,7 @@ namespace Web.API.Features.Authentication
 
             // Logging detailed error messages
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            _logger.LogError($"Password change failed for user ID {model.UserId}. Errors: {errors}");
+            _logger.LogError($"Password change failed for user ID {user.Id}. Errors: {errors}");
 
             return BadRequest($"Password change failed!");
         }
@@ -366,10 +366,10 @@ namespace Web.API.Features.Authentication
         [Authorize]
         public async Task<ActionResult> GetUserRoles([EmailAddress] string email)
         {
-            if (string.IsNullOrEmpty(email)) return NotFound();
+            if (string.IsNullOrEmpty(email)) return BadRequest("Email is required");
 
             var user = await _getUserByEmailQuery.ExecuteAsync(email);
-            if (user == null) return NotFound();
+            if (user == null) return NotFound("User not found");
 
             var userRoles = await _getUserRolesQuery.ExecuteAsync(user);
 

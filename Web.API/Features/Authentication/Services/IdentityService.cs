@@ -318,5 +318,4 @@ namespace Web.API.Features.Authentication.Services
             return await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
         }
     }
-    }
 }
