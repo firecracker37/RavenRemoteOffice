@@ -64,19 +64,7 @@ namespace Web.API.Features.Authentication
 
             if (registerResult.Succeeded)
             {
-                // Send the email confirmation
-                var emailResult = await _sendEmailVerificationEmailCommand.ExecuteAsync(model.Email);
-
-                if (emailResult.Success)
-                {
-                    // If email is sent successfully, return 201
-                    return new StatusCodeResult(201);
-                }
-                else
-                {
-                    // Handle the case when the email sending fails, you can log this or handle it as per your requirement
-                    return BadRequest("User registered, but failed to send the confirmation email.");
-                }
+                return new StatusCodeResult(201);
             }
             else
             {

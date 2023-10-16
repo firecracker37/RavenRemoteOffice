@@ -1,12 +1,15 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Serilog.Events;
+using Serilog;
 using Web.API.Features.Authentication.Commands;
 using Web.API.Features.Authentication.Models;
 using Web.API.Features.Authentication.Queries;
 using Web.API.Features.Authentication.Services;
 using Web.API.Infrastructure.DbContexts;
 using Web.API.Initialization;
+using Serilog.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,6 +72,19 @@ builder.Services.AddTransient<RemoveUserFromRoleCommand>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Verbose()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Warning)
+    .WriteTo.Logger(lc => lc
+        .Filter.ByIncludingOnly(Matching.FromSource<IdentityService>())
+        .WriteTo.File("logs/identityService.txt", rollingInterval: RollingInterval.Day))
+    .WriteTo.File("logs/myapp.txt", rollingInterval: RollingInterval.Day)
+    .WriteTo.File("logs/errors.txt", rollingInterval: RollingInterval.Day, restrictedToMinimumLevel: LogEventLevel.Error)
+    .CreateLogger();
+builder.Logging.AddSerilog(Log.Logger);
 
 var app = builder.Build();
 

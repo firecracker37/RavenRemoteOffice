@@ -15,17 +15,20 @@ namespace Web.API.Features.Authentication.Services
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly ApplicationDbContext _dbContext;
+        private readonly ILogger<IdentityService> _logger;
 
         public IdentityService(
             UserManager<ApplicationUser> userManager,
             RoleManager<ApplicationRole> roleManager,
             ApplicationDbContext dbContext,
-            SignInManager<ApplicationUser> signInManager)
+            SignInManager<ApplicationUser> signInManager,
+            ILogger<IdentityService> logger)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _dbContext = dbContext;
             _signInManager = signInManager;
+            _logger = logger;
         }
 
         public async Task<ApplicationUser> FindUserByIdAsync(string userId)
