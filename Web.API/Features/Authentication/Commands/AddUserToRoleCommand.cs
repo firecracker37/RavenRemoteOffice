@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
-using Web.API.Constants;
 using Web.API.Features.Authentication.DTOs;
 using Web.API.Features.Authentication.Services;
 
@@ -35,12 +34,12 @@ public class AddUserToRoleCommand
             });
         }
 
-        if (!Enum.IsDefined(typeof(Roles), userWithRole.Role))
+        if (string.IsNullOrEmpty(userWithRole.Role))
         {
             return IdentityResult.Failed(new IdentityError
             {
-                Code = "InvalidRole",
-                Description = "Invalid role specified"
+                Code = "NullRole",
+                Description = $"{nameof(userWithRole.Role)} cannot be null"
             });
         }
 
@@ -65,7 +64,7 @@ public class AddUserToRoleCommand
         }
 
         var currentUserRoles = await _identityService.GetUserRolesAsync(currentUser);
-        if (!currentUserRoles.Contains(Roles.Admin) && !currentUserRoles.Contains(Roles.Manager))
+        if (!currentUserRoles.Contains("Admin") && !currentUserRoles.Contains("Manager"))
         {
             return IdentityResult.Failed(new IdentityError
             {
@@ -77,3 +76,4 @@ public class AddUserToRoleCommand
         return await _identityService.AddUserToRoleAsync(userWithRole);
     }
 }
+

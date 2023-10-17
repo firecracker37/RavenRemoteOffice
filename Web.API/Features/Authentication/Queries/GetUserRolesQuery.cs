@@ -17,10 +17,7 @@ namespace Web.API.Features.Authentication.Queries
         {
             if (user == null) return new List<string>();
 
-            if (user == null) return new List<string>();
-
-            var roles = await _identityService.GetUserRolesAsync(user);
-            var roleNames = roles.Select(role => role.ToString()).ToList();  // Convert enum to string
+            var roleNames = await _identityService.GetUserRolesAsync(user);
             return roleNames;
         }
     }

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
 using Serilog.Filters;
+using Web.API.Features.Authentication;
 using Web.API.Features.Authentication.Commands;
 using Web.API.Features.Authentication.Models;
 using Web.API.Features.Authentication.Queries;
@@ -83,6 +84,9 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.Logger(lc => lc
         .Filter.ByIncludingOnly(Matching.FromSource<IdentityService>())
         .WriteTo.File("logs/identityService.txt", rollingInterval: RollingInterval.Day))
+    .WriteTo.Logger(lc => lc
+        .Filter.ByIncludingOnly(Matching.FromSource<AuthenticationController>())
+        .WriteTo.File("logs/authenticationController.txt", rollingInterval: RollingInterval.Day))
     .WriteTo.File("logs/myapp.txt", rollingInterval: RollingInterval.Day)
     .WriteTo.File("logs/errors.txt", rollingInterval: RollingInterval.Day, restrictedToMinimumLevel: LogEventLevel.Error)
     .CreateLogger();
@@ -96,8 +100,8 @@ using (var scope = app.Services.CreateScope())
     RoleSeed.EnsureCreatedAsync(roleManager).GetAwaiter().GetResult();
 
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>(); // Get DbContext
-    UserSeed.EnsureCreatedAsync(userManager, roleManager, dbContext).GetAwaiter().GetResult(); // Pass DbContext
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    UserSeed.EnsureCreatedAsync(userManager, roleManager, dbContext).GetAwaiter().GetResult();
 }
 
 // Configure the HTTP request pipeline.

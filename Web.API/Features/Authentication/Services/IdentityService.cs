@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Web.API.Constants;
 using Web.API.Features.Authentication.DTOs;
 using Web.API.Features.Authentication.Models;
 using Web.API.Features.Authentication.Results;
@@ -202,12 +201,13 @@ namespace Web.API.Features.Authentication.Services
                     Description = $"{nameof(userWithRole.User)} cannot be null"
                 });
             }
-            if (!Enum.IsDefined(typeof(Roles), userWithRole.Role))
+            // Check if the role exists in the RoleManager
+            if (!await _roleManager.RoleExistsAsync(userWithRole.Role))
             {
                 return IdentityResult.Failed(new IdentityError
                 {
-                    Code = "NullModel",
-                    Description = $"{nameof(userWithRole.Role)} is not a valid role"
+                    Code = "RoleNotFound",
+                    Description = $"Role {userWithRole.Role} does not exist"
                 });
             }
 
@@ -235,41 +235,35 @@ namespace Web.API.Features.Authentication.Services
                     Description = $"{nameof(userWithRole.User)} cannot be null"
                 });
             }
-            if (!Enum.IsDefined(typeof(Roles), userWithRole.Role))
+            // Check if the role exists in the RoleManager
+            if (!await _roleManager.RoleExistsAsync(userWithRole.Role))
             {
                 return IdentityResult.Failed(new IdentityError
                 {
-                    Code = "NullModel",
-                    Description = $"{nameof(userWithRole.Role)} is not a valid role"
+                    Code = "RoleNotFound",
+                    Description = $"Role {userWithRole.Role} does not exist"
                 });
             }
 
-            string roleName = userWithRole.Role.ToString();
-            var result = await _userManager.RemoveFromRoleAsync(userWithRole.User, roleName);
+            var result = await _userManager.RemoveFromRoleAsync(userWithRole.User, userWithRole.Role);
 
             return result;
         }
 
-        public async Task<IList<Roles>> GetUserRolesAsync(ApplicationUser user)
+        public async Task<IList<string>> GetUserRolesAsync(ApplicationUser user)
         {
-            if (user == null) return new List<Roles>();
+            if (user == null) return new List<string>();
 
             var roleNames = await _userManager.GetRolesAsync(user);
-            var roles = roleNames
-                .Where(roleName => Enum.TryParse(typeof(Roles), roleName, out _))
-                .Select(roleName => (Roles)Enum.Parse(typeof(Roles), roleName))
-                .ToList();
-
-            return roles;
+            return roleNames.ToList();
         }
 
         public async Task<bool> IsUserInRole(UserWithRoleDTO userWithRole)
         {
             if (userWithRole == null) return false;
             if (userWithRole.User == null) return false;
-            if (!Enum.IsDefined(typeof(Roles), userWithRole.Role)) return false;
 
-            var result = await _userManager.IsInRoleAsync(userWithRole.User, userWithRole.Role.ToString());
+            var result = await _userManager.IsInRoleAsync(userWithRole.User, userWithRole.Role);
 
             return result;
         }

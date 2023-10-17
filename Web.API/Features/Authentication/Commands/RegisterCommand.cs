@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Web.API.Constants;
 using Web.API.Features.Authentication.DTOs;
 using Web.API.Features.Authentication.Services;
 using Web.Shared.DTOs;
@@ -46,7 +45,7 @@ namespace Web.API.Features.Authentication.Commands
                     var userWithRole = new UserWithRoleDTO
                     {
                         User = user,
-                        Role = Roles.Employee
+                        Role = "Employee"
                     };
 
                     // Add the user to the Employee role

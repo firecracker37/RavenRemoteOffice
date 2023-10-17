@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
-using Web.API.Constants;
 using Web.API.Features.Authentication.Commands;
 using Web.API.Features.Authentication.DTOs;
 using Web.API.Features.Authentication.Models;
@@ -66,7 +65,7 @@ namespace Web.API.Features.Authentication
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register(RegisterUserDTO model)
+        public async Task<IActionResult> Register([FromBody] RegisterUserDTO model)
         {
             if (!ModelState.IsValid)
             {
@@ -86,7 +85,7 @@ namespace Web.API.Features.Authentication
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginUserDTO model)
+        public async Task<IActionResult> Login([FromBody] LoginUserDTO model)
         {
             if (!ModelState.IsValid)
             {
@@ -132,7 +131,7 @@ namespace Web.API.Features.Authentication
             if (!ModelState.IsValid)
             {
                 _logger.LogError($"Model state for ConfirmEmail could not be confirmed. UserID: {model.UserId}, Token: {model.Token} ");
-                return BadRequest(ModelState); // or handle validation errors as needed
+                return BadRequest(ModelState);
             }
 
             var result = await _verifyUserEmailCommand.ExecuteAsync(model.UserId, model.Token);
@@ -245,6 +244,7 @@ namespace Web.API.Features.Authentication
 
             if (user == null) return NotFound();
 
+            // TODO: Remap user object to something safer to send to the client.
             return Ok(user);
         }
 
@@ -255,6 +255,7 @@ namespace Web.API.Features.Authentication
 
             if (user == null) return NotFound();
 
+            // TODO: Remap user object to something safer to send to the client.
             return Ok(user);
         }
 
@@ -273,6 +274,7 @@ namespace Web.API.Features.Authentication
 
             if (user == null) return NotFound();
 
+            // TODO: Remap user object to something safer to send to the client.
             return Ok(user);
         }
 
@@ -284,36 +286,25 @@ namespace Web.API.Features.Authentication
 
             if (user == null) return NotFound();
 
-            if (Enum.TryParse(role, true, out Roles roleEnum))
+            if (string.IsNullOrEmpty(role))
             {
-                var result = await _addUserToRoleCommand.ExecuteAsync(new UserWithRoleDTO { User = user, Role = roleEnum });
-
-                if (result.Succeeded) return Ok();
-
-                var error = result.Errors.FirstOrDefault();
-
-                if (error != null)
-                {
-                    switch (error.Code)
-                    {
-                        case "NullUserWithRole":
-                        case "NullUser":
-                        case "InvalidRole":
-                            return BadRequest(error.Description);
-
-                        case "Unauthorized":
-                        case "UserNotFound":
-                        case "PermissionDenied":
-                            return Unauthorized(error.Description);
-
-                        default:
-                            return BadRequest("An unexpected error occurred");
-                    }
-                }
+                return BadRequest("Role is required");
             }
-            else
+
+            var result = await _addUserToRoleCommand.ExecuteAsync(new UserWithRoleDTO { User = user, Role = role });
+
+            if (result.Succeeded) return Ok();
+
+            var error = result.Errors.FirstOrDefault();
+
+            if (error != null)
             {
-                return BadRequest("Invalid role");
+                return error.Code switch
+                {
+                    "NullUserWithRole" or "NullUser" or "InvalidRole" => BadRequest(error.Description),
+                    "Unauthorized" or "UserNotFound" or "PermissionDenied" => Unauthorized(error.Description),
+                    _ => BadRequest("An unexpected error occurred")
+                };
             }
 
             return BadRequest("An unexpected error occurred");
@@ -327,40 +318,30 @@ namespace Web.API.Features.Authentication
 
             if (user == null) return NotFound();
 
-            if (Enum.TryParse(role, true, out Roles roleEnum))
+            if (string.IsNullOrEmpty(role))
             {
-                var result = await _removeUserFromRoleCommand.ExecuteAsync(new UserWithRoleDTO { User = user, Role = roleEnum });
-
-                if (result.Succeeded) return Ok();
-
-                var error = result.Errors.FirstOrDefault();
-
-                if (error != null)
-                {
-                    switch (error.Code)
-                    {
-                        case "NullUserWithRole":
-                        case "NullUser":
-                        case "InvalidRole":
-                            return BadRequest(error.Description);
-
-                        case "Unauthorized":
-                        case "UserNotFound":
-                        case "PermissionDenied":
-                            return Unauthorized(error.Description);
-
-                        default:
-                            return BadRequest("An unexpected error occurred");
-                    }
-                }
+                return BadRequest("Role is required");
             }
-            else
+
+            var result = await _removeUserFromRoleCommand.ExecuteAsync(new UserWithRoleDTO { User = user, Role = role });
+
+            if (result.Succeeded) return Ok();
+
+            var error = result.Errors.FirstOrDefault();
+
+            if (error != null)
             {
-                return BadRequest("Invalid role");
+                return error.Code switch
+                {
+                    "NullUserWithRole" or "NullUser" or "InvalidRole" => BadRequest(error.Description),
+                    "Unauthorized" or "UserNotFound" or "PermissionDenied" => Unauthorized(error.Description),
+                    _ => BadRequest("An unexpected error occurred")
+                };
             }
 
             return BadRequest("An unexpected error occurred");
         }
+
 
         [HttpGet("role/get-user-roles")]
         [Authorize]
