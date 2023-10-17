@@ -74,6 +74,9 @@ builder.Services.AddTransient<ChangeUserPasswordCommand>();
 builder.Services.AddTransient<AddUserPhoneCommand>();
 builder.Services.AddTransient<RemoveUserPhoneCommand>();
 builder.Services.AddTransient<UpdateUserPhoneCommand>();
+builder.Services.AddTransient<AddUserAddressCommand>();
+builder.Services.AddTransient<RemoveUserAddressCommand>();
+builder.Services.AddTransient<UpdateUserAddressCommand>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

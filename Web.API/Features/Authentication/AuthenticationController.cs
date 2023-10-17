@@ -31,6 +31,9 @@ namespace Web.API.Features.Authentication
         private readonly AddUserPhoneCommand _addUserPhoneCommand;
         private readonly RemoveUserPhoneCommand _removeUserPhoneCommand;
         private readonly UpdateUserPhoneCommand _updateUserPhoneCommand;
+        private readonly AddUserAddressCommand _addUserAddressCommand;
+        private readonly RemoveUserAddressCommand _removeUserAddressCommand;
+        private readonly UpdateUserAddressCommand _updateUserAddressCommand;
         private readonly ILogger<AuthenticationController> _logger;
 
         public AuthenticationController(
@@ -51,6 +54,9 @@ namespace Web.API.Features.Authentication
             AddUserPhoneCommand addUserPhoneCommand,
             RemoveUserPhoneCommand removeUserPhoneCommand,
             UpdateUserPhoneCommand updateUserPhoneCommand,
+            AddUserAddressCommand addUserAddressCommand,
+            RemoveUserAddressCommand removeUserAddressCommand,
+            UpdateUserAddressCommand updateUserAddressCommand,
             ILogger<AuthenticationController> logger)
         {
             _httpContextAccessor = httpContextAccessor;
@@ -70,6 +76,9 @@ namespace Web.API.Features.Authentication
             _addUserPhoneCommand = addUserPhoneCommand;
             _removeUserPhoneCommand = removeUserPhoneCommand;
             _updateUserPhoneCommand = updateUserPhoneCommand;
+            _addUserAddressCommand = addUserAddressCommand;
+            _removeUserAddressCommand = removeUserAddressCommand;
+            _updateUserAddressCommand = updateUserAddressCommand;
             _logger = logger;
         }
 
@@ -449,6 +458,77 @@ namespace Web.API.Features.Authentication
             if (user == null) return NotFound("User not found");
 
             var result = await _updateUserPhoneCommand.ExecuteAsync(user, model);
+
+            if (result.Succeeded) return Ok("Phone number updated");
+            return BadRequest(result);
+        }
+
+        [HttpPost("address/add")]
+        [Authorize]
+        public async Task<IActionResult> AddUserAddress([FromBody] UserAddressDTO model)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogError("Model state for AddUserAddress is invalid.");
+                var errorMessages = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return BadRequest(new { Errors = errorMessages });
+            }
+
+            var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized("User is not logged in");
+
+            var user = await _getUserQuery.ExecuteAsync(userId);
+            if (user == null) return NotFound("User not found");
+
+            var result = await _addUserAddressCommand.ExecuteAsync(user, model);
+
+            if (result.Succeeded) return Ok("Address added");
+
+            return BadRequest(result);
+        }
+
+        [HttpPost("address/remove")]
+        [Authorize]
+        public async Task<IActionResult> RemoveUserAddress([FromBody] UserAddressDTO model)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogError("Model state for RemoveUserAddress is invalid.");
+                var errorMessages = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return BadRequest(new { Errors = errorMessages });
+            }
+
+            var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized("User is not logged in");
+
+            var user = await _getUserQuery.ExecuteAsync(userId);
+            if (user == null) return NotFound("User not found");
+
+            var result = await _removeUserAddressCommand.ExecuteAsync(user, model);
+
+            if (result.Succeeded) return Ok("Address added");
+
+            return BadRequest(result);
+        }
+
+        [HttpPost("address/update")]
+        [Authorize]
+        public async Task<IActionResult> UpdateUserAddress(UserAddressDTO model)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogError("Model state for UpdateUserAddress is invalid.");
+                var errorMessages = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return BadRequest(new { Errors = errorMessages });
+            }
+
+            var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized("User is not logged in");
+
+            var user = await _getUserQuery.ExecuteAsync(userId);
+            if (user == null) return NotFound("User not found");
+
+            var result = await _updateUserAddressCommand.ExecuteAsync(user, model);
 
             if (result.Succeeded) return Ok("Phone number updated");
             return BadRequest(result);

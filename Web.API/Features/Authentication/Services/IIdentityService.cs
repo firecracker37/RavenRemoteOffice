@@ -26,5 +26,8 @@ namespace Web.API.Features.Authentication.Services
         Task<IdentityResult> AddUserPhoneNumberAsync(ApplicationUser user, UserPhoneDTO model);
         Task<IdentityResult> RemoveUserPhoneNumberAsync(UserPhone model);
         Task<IdentityResult> UpdateUserPhoneNumberAsync(UserPhone numberToUpdate, UserPhoneDTO model);
+        Task<IdentityResult> AddUserAddressAsync(ApplicationUser user, UserAddressDTO model);
+        Task<IdentityResult> RemoveUserAddressAsync(UserAddress model);
+        Task<IdentityResult> UpdateUserAddressAsync(UserAddress addressToUpdate, UserAddressDTO model);
     }
 }

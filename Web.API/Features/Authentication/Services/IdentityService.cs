@@ -384,5 +384,80 @@ namespace Web.API.Features.Authentication.Services
             }
         }
 
+        public async Task<IdentityResult> AddUserAddressAsync(ApplicationUser user, UserAddressDTO model)
+        {
+            if (user == null || model == null) return IdentityResult.Failed(new IdentityError { Description = "An error occurred while processing your request." });
+
+            var userAddress = new UserAddress
+            {
+                NickName = model.NickName,
+                Street1 = model.Street1,
+                Street2 = model.Street2,
+                City = model.City,
+                State = model.State,
+                PostalCode = model.PostalCode,
+                UserProfileId = user.UserProfileId,
+                UserProfile = user.UserProfile
+            };
+
+            // Adding the userAddress to the UserProfile's Addresses collection
+            user.UserProfile.Addresses.Add(userAddress);
+
+            try
+            {
+                await _dbContext.SaveChangesAsync();
+                return IdentityResult.Success;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while adding address for user with ID {UserId}", user.Id);
+                return IdentityResult.Failed(new IdentityError { Description = ex.Message });
+            }
+        }
+
+        public async Task<IdentityResult> RemoveUserAddressAsync(UserAddress model)
+        {
+            if (model == null)
+                return IdentityResult.Failed(new IdentityError { Description = "An error occurred while processing your request." });
+
+            _dbContext.UserAddresses.Remove(model);
+
+            try
+            {
+                await _dbContext.SaveChangesAsync();
+                return IdentityResult.Success;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while removing address number with ID {AddressId}", model.Id);
+                return IdentityResult.Failed(new IdentityError { Description = ex.Message });
+            }
+        }
+
+        public async Task<IdentityResult> UpdateUserAddressAsync(UserAddress addressToUpdate, UserAddressDTO model)
+        {
+            if(addressToUpdate == null || model == null)
+                return IdentityResult.Failed(new IdentityError { Description = "An error occurred while processing your request." });
+            if(addressToUpdate.Id <= 0)
+                return IdentityResult.Failed(new IdentityError { Description = "Invalid address ID." });
+
+            // Map DTO to UserAddress
+            addressToUpdate.Street1 = model.Street1;
+            addressToUpdate.Street2 = model.Street2;
+            addressToUpdate.City = model.City;
+            addressToUpdate.State = model.State;
+            addressToUpdate.PostalCode = model.PostalCode;
+
+            try
+            {
+                await _dbContext.SaveChangesAsync();
+                return IdentityResult.Success;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while updating address with ID {PhoneId}", addressToUpdate.Id);
+                return IdentityResult.Failed(new IdentityError { Description = ex.Message });
+            }
+        }
     }
 }
