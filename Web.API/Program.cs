@@ -71,6 +71,9 @@ builder.Services.AddTransient<RemoveUserFromRoleCommand>();
 builder.Services.AddTransient<RequestPasswordResetCommand>();
 builder.Services.AddTransient<ResetUserPasswordCommand>();
 builder.Services.AddTransient<ChangeUserPasswordCommand>();
+builder.Services.AddTransient<AddUserPhoneCommand>();
+builder.Services.AddTransient<RemoveUserPhoneCommand>();
+builder.Services.AddTransient<UpdateUserPhoneCommand>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

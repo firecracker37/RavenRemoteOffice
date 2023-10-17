@@ -23,5 +23,8 @@ namespace Web.API.Features.Authentication.Services
         Task<string> RequestPasswordResetAsync(ApplicationUser user);
         Task<IdentityResult> ResetUserPasswordAsync(ResetUserPasswordDTO model);
         Task<IdentityResult> ChangeUserPasswordAsync(ApplicationUser user, ChangePasswordDTO model);
+        Task<IdentityResult> AddUserPhoneNumberAsync(ApplicationUser user, UserPhoneDTO model);
+        Task<IdentityResult> RemoveUserPhoneNumberAsync(UserPhone model);
+        Task<IdentityResult> UpdateUserPhoneNumberAsync(UserPhone numberToUpdate, UserPhoneDTO model);
     }
 }

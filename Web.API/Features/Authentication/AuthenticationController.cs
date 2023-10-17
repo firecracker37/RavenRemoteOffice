@@ -28,6 +28,9 @@ namespace Web.API.Features.Authentication
         private readonly RequestPasswordResetCommand _requestPasswordResetCommand;
         private readonly ResetUserPasswordCommand _resetUserPasswordCommand;
         private readonly ChangeUserPasswordCommand _changeUserPasswordCommand;
+        private readonly AddUserPhoneCommand _addUserPhoneCommand;
+        private readonly RemoveUserPhoneCommand _removeUserPhoneCommand;
+        private readonly UpdateUserPhoneCommand _updateUserPhoneCommand;
         private readonly ILogger<AuthenticationController> _logger;
 
         public AuthenticationController(
@@ -45,6 +48,9 @@ namespace Web.API.Features.Authentication
             RequestPasswordResetCommand requestPasswordResetCommand,
             ResetUserPasswordCommand resetUserPasswordCommand,
             ChangeUserPasswordCommand changeUserPasswordCommand,
+            AddUserPhoneCommand addUserPhoneCommand,
+            RemoveUserPhoneCommand removeUserPhoneCommand,
+            UpdateUserPhoneCommand updateUserPhoneCommand,
             ILogger<AuthenticationController> logger)
         {
             _httpContextAccessor = httpContextAccessor;
@@ -61,6 +67,9 @@ namespace Web.API.Features.Authentication
             _requestPasswordResetCommand = requestPasswordResetCommand;
             _resetUserPasswordCommand = resetUserPasswordCommand;
             _changeUserPasswordCommand = changeUserPasswordCommand;
+            _addUserPhoneCommand = addUserPhoneCommand;
+            _removeUserPhoneCommand = removeUserPhoneCommand;
+            _updateUserPhoneCommand = updateUserPhoneCommand;
             _logger = logger;
         }
 
@@ -123,7 +132,7 @@ namespace Web.API.Features.Authentication
             return Ok("Logged out successfully.");
         }
 
-        [HttpGet("confirm")]
+        [HttpGet("confirm-email")]
         public async Task<IActionResult> ConfirmEmail([FromQuery] EmailConfirmationDTO model)
         {
             _logger.LogInformation($"ConfirmEmail called with UserId: {model.UserId}, Token: {model.Token}");
@@ -278,7 +287,7 @@ namespace Web.API.Features.Authentication
             return Ok(user);
         }
 
-        [HttpPost("role/add-user")]
+        [HttpPost("role/add")]
         [Authorize(Roles = "Admin, Manager")]
         public async Task<IActionResult> AddUserToRole([EmailAddress] string email, string role)
         {
@@ -310,7 +319,7 @@ namespace Web.API.Features.Authentication
             return BadRequest("An unexpected error occurred");
         }
 
-        [HttpPost("role/remove-user")]
+        [HttpPost("role/remove")]
         [Authorize(Roles = "Admin, Manager")]
         public async Task<IActionResult> RemoveUserFromRole([EmailAddress] string email, string role)
         {
@@ -358,7 +367,7 @@ namespace Web.API.Features.Authentication
             return Ok(userRoles);
         }
 
-        [HttpGet("role/get-current-user-roles")]
+        [HttpGet("role/current-user-roles")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<string>>> GetCurrentUsersRoles()
         {
@@ -374,5 +383,75 @@ namespace Web.API.Features.Authentication
             return Ok(userRoles);
         }
 
+        [HttpPost("phone/add")]
+        [Authorize]
+        public async Task<IActionResult> AddUserPhoneNumber([FromBody] UserPhoneDTO model)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogError("Model state for AddUserPhoneNumber is invalid.");
+                var errorMessages = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return BadRequest(new { Errors = errorMessages });
+            }
+
+            var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized("User is not logged in");
+
+            var user = await _getUserQuery.ExecuteAsync(userId);
+            if (user == null) return NotFound("User not found");
+
+            var result = await _addUserPhoneCommand.ExecuteAsync(user, model);
+
+            if (result.Succeeded) return Ok("Phone number added");
+
+            return BadRequest(result);
+        }
+
+        [HttpPost("phone/remove")]
+        [Authorize]
+        public async Task<IActionResult> RemoveUserPhoneNumber([FromBody] UserPhoneDTO model)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogError("Model state for RemoveUserPhoneNumber is invalid.");
+                var errorMessages = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return BadRequest(new { Errors = errorMessages });
+            }
+
+            var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized("User is not logged in");
+
+            var user = await _getUserQuery.ExecuteAsync(userId);
+            if (user == null) return NotFound("User not found");
+
+            var result = await _removeUserPhoneCommand.ExecuteAsync(user, model);
+
+            if (result.Succeeded) return Ok("Phone number added");
+
+            return BadRequest(result);
+        }
+
+        [HttpPost("phone/update")]
+        [Authorize]
+        public async Task<IActionResult> UpdateUserPhone(UserPhoneDTO model)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogError("Model state for UpdateUserPhoneNumber is invalid.");
+                var errorMessages = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return BadRequest(new { Errors = errorMessages });
+            }
+
+            var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized("User is not logged in");
+
+            var user = await _getUserQuery.ExecuteAsync(userId);
+            if (user == null) return NotFound("User not found");
+
+            var result = await _updateUserPhoneCommand.ExecuteAsync(user, model);
+
+            if (result.Succeeded) return Ok("Phone number updated");
+            return BadRequest(result);
+        }
     }
 }

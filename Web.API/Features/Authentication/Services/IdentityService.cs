@@ -311,5 +311,78 @@ namespace Web.API.Features.Authentication.Services
 
             return await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
         }
+
+        public async Task<IdentityResult> AddUserPhoneNumberAsync(ApplicationUser user, UserPhoneDTO model)
+        {
+            if (user == null || model == null) return IdentityResult.Failed(new IdentityError { Description = "An error occurred while processing your request." });
+
+            var userPhone = new UserPhone
+            {
+                NickName = model.NickName,
+                PhoneNumber = model.PhoneNumber,
+                UserProfileId = user.UserProfileId,
+                UserProfile = user.UserProfile     
+            };
+
+            // Adding the userPhone to the UserProfile's PhoneNumbers collection
+            user.UserProfile.PhoneNumbers.Add(userPhone);
+
+            try
+            {
+                await _dbContext.SaveChangesAsync();
+                return IdentityResult.Success;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while adding phone number for user with ID {UserId}", user.Id);
+                return IdentityResult.Failed(new IdentityError { Description = ex.Message });
+            }
+
+        }
+
+        public async Task<IdentityResult> RemoveUserPhoneNumberAsync(UserPhone userPhone)
+        {
+            if (userPhone == null)
+                return IdentityResult.Failed(new IdentityError { Description = "An error occurred while processing your request." });
+
+            // Remove the userPhone from the DbContext
+            _dbContext.UserPhones.Remove(userPhone);
+
+            try
+            {
+                await _dbContext.SaveChangesAsync();
+                return IdentityResult.Success;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while removing phone number with ID {PhoneId}", userPhone.Id);
+                return IdentityResult.Failed(new IdentityError { Description = ex.Message });
+            }
+        }
+
+        public async Task<IdentityResult> UpdateUserPhoneNumberAsync(UserPhone numberToUpdate, UserPhoneDTO model)
+        {
+            if (numberToUpdate == null || model == null)
+                return IdentityResult.Failed(new IdentityError { Description = "An error occurred while processing your request." });
+
+            if (numberToUpdate.Id <= 0)
+                return IdentityResult.Failed(new IdentityError { Description = "Invalid phone number ID." });
+
+            // Map the DTO to the numberToUpdate
+            numberToUpdate.NickName = model.NickName;
+            numberToUpdate.PhoneNumber = model.PhoneNumber;
+
+            try
+            {
+                await _dbContext.SaveChangesAsync();
+                return IdentityResult.Success;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while updating phone number with ID {PhoneId}", numberToUpdate.Id);
+                return IdentityResult.Failed(new IdentityError { Description = ex.Message });
+            }
+        }
+
     }
 }
