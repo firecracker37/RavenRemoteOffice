@@ -77,6 +77,7 @@ builder.Services.AddTransient<UpdateUserPhoneCommand>();
 builder.Services.AddTransient<AddUserAddressCommand>();
 builder.Services.AddTransient<RemoveUserAddressCommand>();
 builder.Services.AddTransient<UpdateUserAddressCommand>();
+builder.Services.AddTransient<MapUserToDTOQuery>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

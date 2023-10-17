@@ -34,6 +34,7 @@ namespace Web.API.Features.Authentication
         private readonly AddUserAddressCommand _addUserAddressCommand;
         private readonly RemoveUserAddressCommand _removeUserAddressCommand;
         private readonly UpdateUserAddressCommand _updateUserAddressCommand;
+        private readonly MapUserToDTOQuery _mapUserToDTOQuery;
         private readonly ILogger<AuthenticationController> _logger;
 
         public AuthenticationController(
@@ -57,6 +58,7 @@ namespace Web.API.Features.Authentication
             AddUserAddressCommand addUserAddressCommand,
             RemoveUserAddressCommand removeUserAddressCommand,
             UpdateUserAddressCommand updateUserAddressCommand,
+            MapUserToDTOQuery mapUserToDTOQuery,
             ILogger<AuthenticationController> logger)
         {
             _httpContextAccessor = httpContextAccessor;
@@ -79,6 +81,7 @@ namespace Web.API.Features.Authentication
             _addUserAddressCommand = addUserAddressCommand;
             _removeUserAddressCommand = removeUserAddressCommand;
             _updateUserAddressCommand = updateUserAddressCommand;
+            _mapUserToDTOQuery = mapUserToDTOQuery;
             _logger = logger;
         }
 
@@ -114,7 +117,15 @@ namespace Web.API.Features.Authentication
 
             if (result.Succeeded)
             {
-                return Ok();
+                var userDTO = _mapUserToDTOQuery.Execute(result.User);
+                if (userDTO.Result is OkObjectResult okResult)
+                {
+                    return Ok(okResult.Value);
+                }
+                else
+                {
+                    return StatusCode(500, new { message = "An error occurred while retrieving user data" });
+                }
             }
             else if (result.IsLockedOut)
             {
@@ -262,8 +273,8 @@ namespace Web.API.Features.Authentication
 
             if (user == null) return NotFound();
 
-            // TODO: Remap user object to something safer to send to the client.
-            return Ok(user);
+            var returnUser = _mapUserToDTOQuery.Execute(user);
+            return Ok(returnUser);
         }
 
         [HttpGet("email/{email}")]
@@ -273,8 +284,8 @@ namespace Web.API.Features.Authentication
 
             if (user == null) return NotFound();
 
-            // TODO: Remap user object to something safer to send to the client.
-            return Ok(user);
+            var returnUser = _mapUserToDTOQuery.Execute(user);
+            return Ok(returnUser);
         }
 
         [HttpGet("current")]
@@ -292,8 +303,8 @@ namespace Web.API.Features.Authentication
 
             if (user == null) return NotFound();
 
-            // TODO: Remap user object to something safer to send to the client.
-            return Ok(user);
+            var returnUser = _mapUserToDTOQuery.Execute(user);
+            return Ok(returnUser);
         }
 
         [HttpPost("role/add")]

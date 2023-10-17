@@ -9,7 +9,7 @@ namespace Web.Shared.DTOs
 {
     public class UserAddressDTO
     {
-        public int? Id { get; set; }
+        public int Id { get; set; }
 
         [StringLength(30, ErrorMessage = "Nickname cannot be longer than 30 characters.")]
         public string NickName { get; set; }

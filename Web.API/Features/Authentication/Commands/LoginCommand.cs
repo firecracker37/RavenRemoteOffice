@@ -32,7 +32,8 @@ namespace Web.API.Features.Authentication.Commands
             {
                 Succeeded = signInResult.Succeeded,
                 IsLockedOut = signInResult.IsLockedOut,
-                RequiresTwoFactor = signInResult.RequiresTwoFactor
+                RequiresTwoFactor = signInResult.RequiresTwoFactor,
+                User = user
             };
         }
     }

@@ -53,5 +53,4 @@ namespace Web.API.Features.Authentication.Commands
             return result;
         }
     }
-
 }
