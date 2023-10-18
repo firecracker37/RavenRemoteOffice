@@ -21,7 +21,7 @@ namespace Web.API.Features.Authentication.Commands
 
         public async Task<IdentityResult> ExecuteAsync(ApplicationUser user, int addressId, ManageUserAddressDTO model)
         {
-            if (user == null || model == null || addressId <=0)
+            if (user == null || model == null || addressId <= 0)
                 return IdentityResult.Failed(new IdentityError { Description = "An error occurred while processing your request." });
 
             var userAddress = await _dbContext.UserAddresses.FindAsync(addressId);

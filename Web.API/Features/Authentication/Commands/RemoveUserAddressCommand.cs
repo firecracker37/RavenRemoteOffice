@@ -4,7 +4,6 @@ using Web.API.Features.Authentication.Models;
 using Web.API.Features.Authentication.Services;
 using Web.API.Infrastructure.DbContexts;
 using Web.Shared.DTOs;
-using Web.Shared.Utilities;
 
 namespace Web.API.Features.Authentication.Commands
 {

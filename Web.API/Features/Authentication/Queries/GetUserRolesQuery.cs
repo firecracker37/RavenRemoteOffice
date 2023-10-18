@@ -1,5 +1,4 @@
-﻿using Web.API.Constants;
-using Web.API.Features.Authentication.Models;
+﻿using Web.API.Features.Authentication.Models;
 using Web.API.Features.Authentication.Services;
 
 namespace Web.API.Features.Authentication.Queries

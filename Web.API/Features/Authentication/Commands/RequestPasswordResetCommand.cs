@@ -1,8 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Web.API.Features.Authentication.DTOs;
-using Web.API.Features.Authentication.Results;
+﻿using Web.API.Features.Authentication.Results;
 using Web.API.Features.Authentication.Services;
 using Web.Shared.DTOs;
 

@@ -413,7 +413,7 @@ namespace Web.API.Features.Authentication.Services
 
         public async Task<IdentityResult> UpdateUserAddressAsync(UserAddress addressToUpdate)
         {
-            if(addressToUpdate == null || addressToUpdate.Id <= 0)
+            if (addressToUpdate == null || addressToUpdate.Id <= 0)
                 return IdentityResult.Failed(new IdentityError { Description = "An error occurred while processing your request." });
 
             try

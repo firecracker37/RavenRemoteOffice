@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Web.API.Constants;
 using Web.API.Features.Authentication.DTOs;
 using Web.API.Features.Authentication.Models;
 using Web.API.Features.Authentication.Results;
