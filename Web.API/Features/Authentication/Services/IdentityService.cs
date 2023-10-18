@@ -312,17 +312,10 @@ namespace Web.API.Features.Authentication.Services
             return await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
         }
 
-        public async Task<IdentityResult> AddUserPhoneNumberAsync(ApplicationUser user, UserPhoneDTO model)
+        public async Task<IdentityResult> AddUserPhoneNumberAsync(ApplicationUser user, UserPhone userPhone)
         {
-            if (user == null || model == null) return IdentityResult.Failed(new IdentityError { Description = "An error occurred while processing your request." });
-
-            var userPhone = new UserPhone
-            {
-                NickName = model.NickName,
-                PhoneNumber = model.PhoneNumber,
-                UserProfileId = user.UserProfileId,
-                UserProfile = user.UserProfile     
-            };
+            if (user == null || userPhone == null)
+                return IdentityResult.Failed(new IdentityError { Description = "An error occurred while processing your request." });
 
             // Adding the userPhone to the UserProfile's PhoneNumbers collection
             user.UserProfile.PhoneNumbers.Add(userPhone);
@@ -337,7 +330,6 @@ namespace Web.API.Features.Authentication.Services
                 _logger.LogError(ex, "An error occurred while adding phone number for user with ID {UserId}", user.Id);
                 return IdentityResult.Failed(new IdentityError { Description = ex.Message });
             }
-
         }
 
         public async Task<IdentityResult> RemoveUserPhoneNumberAsync(UserPhone userPhone)
@@ -360,20 +352,17 @@ namespace Web.API.Features.Authentication.Services
             }
         }
 
-        public async Task<IdentityResult> UpdateUserPhoneNumberAsync(UserPhone numberToUpdate, UserPhoneDTO model)
+        public async Task<IdentityResult> UpdateUserPhoneNumberAsync(UserPhone numberToUpdate)
         {
-            if (numberToUpdate == null || model == null)
+            if (numberToUpdate == null)
                 return IdentityResult.Failed(new IdentityError { Description = "An error occurred while processing your request." });
 
             if (numberToUpdate.Id <= 0)
                 return IdentityResult.Failed(new IdentityError { Description = "Invalid phone number ID." });
 
-            // Map the DTO to the numberToUpdate
-            numberToUpdate.NickName = model.NickName;
-            numberToUpdate.PhoneNumber = model.PhoneNumber;
-
             try
             {
+                _dbContext.Update(numberToUpdate);
                 await _dbContext.SaveChangesAsync();
                 return IdentityResult.Success;
             }
@@ -384,24 +373,12 @@ namespace Web.API.Features.Authentication.Services
             }
         }
 
-        public async Task<IdentityResult> AddUserAddressAsync(ApplicationUser user, UserAddressDTO model)
+        public async Task<IdentityResult> AddUserAddressAsync(ApplicationUser user, UserAddress model)
         {
             if (user == null || model == null) return IdentityResult.Failed(new IdentityError { Description = "An error occurred while processing your request." });
 
-            var userAddress = new UserAddress
-            {
-                NickName = model.NickName,
-                Street1 = model.Street1,
-                Street2 = model.Street2,
-                City = model.City,
-                State = model.State,
-                PostalCode = model.PostalCode,
-                UserProfileId = user.UserProfileId,
-                UserProfile = user.UserProfile
-            };
-
             // Adding the userAddress to the UserProfile's Addresses collection
-            user.UserProfile.Addresses.Add(userAddress);
+            user.UserProfile.Addresses.Add(model);
 
             try
             {
@@ -434,19 +411,10 @@ namespace Web.API.Features.Authentication.Services
             }
         }
 
-        public async Task<IdentityResult> UpdateUserAddressAsync(UserAddress addressToUpdate, UserAddressDTO model)
+        public async Task<IdentityResult> UpdateUserAddressAsync(UserAddress addressToUpdate)
         {
-            if(addressToUpdate == null || model == null)
+            if(addressToUpdate == null || addressToUpdate.Id <= 0)
                 return IdentityResult.Failed(new IdentityError { Description = "An error occurred while processing your request." });
-            if(addressToUpdate.Id <= 0)
-                return IdentityResult.Failed(new IdentityError { Description = "Invalid address ID." });
-
-            // Map DTO to UserAddress
-            addressToUpdate.Street1 = model.Street1;
-            addressToUpdate.Street2 = model.Street2;
-            addressToUpdate.City = model.City;
-            addressToUpdate.State = model.State;
-            addressToUpdate.PostalCode = model.PostalCode;
 
             try
             {

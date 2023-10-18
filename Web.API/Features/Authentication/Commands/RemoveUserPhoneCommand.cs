@@ -24,7 +24,7 @@ namespace Web.API.Features.Authentication.Commands
             _dbContext = dbContext;
         }
 
-        public async Task<IdentityResult> ExecuteAsync(ApplicationUser user, UserPhoneDTO model)
+        public async Task<IdentityResult> ExecuteAsync(ApplicationUser user, int phoneId, ManageUserPhoneDTO model)
         {
             if (user == null || model == null)
                 return IdentityResult.Failed(new IdentityError { Description = "An error occurred while processing your request." });
@@ -39,7 +39,7 @@ namespace Web.API.Features.Authentication.Commands
 
             // Check if the phone number belongs to the user
             var userPhone = await _dbContext.UserPhones
-                .FirstOrDefaultAsync(up => up.PhoneNumber == model.PhoneNumber && up.UserProfileId == user.UserProfileId);
+                .FirstOrDefaultAsync(up => up.Id == phoneId && up.UserProfileId == user.UserProfileId);
 
             if (userPhone == null)
             {

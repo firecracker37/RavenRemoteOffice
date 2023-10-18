@@ -405,7 +405,7 @@ namespace Web.API.Features.Authentication
 
         [HttpPost("phone/add")]
         [Authorize]
-        public async Task<IActionResult> AddUserPhoneNumber([FromBody] UserPhoneDTO model)
+        public async Task<IActionResult> AddUserPhoneNumber([FromBody] ManageUserPhoneDTO model)
         {
             if (!ModelState.IsValid)
             {
@@ -427,9 +427,9 @@ namespace Web.API.Features.Authentication
             return BadRequest(result);
         }
 
-        [HttpPost("phone/remove")]
+        [HttpPost("phone/remove/{phoneId}")]
         [Authorize]
-        public async Task<IActionResult> RemoveUserPhoneNumber([FromBody] UserPhoneDTO model)
+        public async Task<IActionResult> RemoveUserPhoneNumber([FromRoute] int phoneId, [FromBody] ManageUserPhoneDTO model)
         {
             if (!ModelState.IsValid)
             {
@@ -444,16 +444,32 @@ namespace Web.API.Features.Authentication
             var user = await _getUserQuery.ExecuteAsync(userId);
             if (user == null) return NotFound("User not found");
 
-            var result = await _removeUserPhoneCommand.ExecuteAsync(user, model);
+            // You can now use phoneId to identify the phone number to be removed
+            // Pass it to the command or use it directly as needed
 
-            if (result.Succeeded) return Ok("Phone number added");
+            var result = await _removeUserPhoneCommand.ExecuteAsync(user, phoneId, model);
+
+            if (result.Succeeded)
+            {
+                var updatedUser = await _getUserQuery.ExecuteAsync(userId);
+                var userDTO = _mapUserToDTOQuery.Execute(updatedUser);
+
+                if (userDTO.Result is OkObjectResult okResult)
+                {
+                    return Ok(new { Message = "Phone number updated", User = okResult.Value });
+                }
+                else
+                {
+                    return StatusCode(500, new { message = "An error occurred while retrieving updated user data" });
+                }
+            }
 
             return BadRequest(result);
         }
 
-        [HttpPost("phone/update")]
+        [HttpPost("phone/update/{phoneId}")]
         [Authorize]
-        public async Task<IActionResult> UpdateUserPhone(UserPhoneDTO model)
+        public async Task<IActionResult> UpdateUserPhone([FromRoute] int phoneId, [FromBody] ManageUserPhoneDTO model)
         {
             if (!ModelState.IsValid)
             {
@@ -468,15 +484,29 @@ namespace Web.API.Features.Authentication
             var user = await _getUserQuery.ExecuteAsync(userId);
             if (user == null) return NotFound("User not found");
 
-            var result = await _updateUserPhoneCommand.ExecuteAsync(user, model);
+            var result = await _updateUserPhoneCommand.ExecuteAsync(user, phoneId, model);
 
-            if (result.Succeeded) return Ok("Phone number updated");
+            if (result.Succeeded)
+            {
+                var updatedUser = await _getUserQuery.ExecuteAsync(userId);
+                var userDTO = _mapUserToDTOQuery.Execute(updatedUser);
+
+                if (userDTO.Result is OkObjectResult okResult)
+                {
+                    return Ok(new { Message = "Phone number updated", User = okResult.Value });
+                }
+                else
+                {
+                    return StatusCode(500, new { message = "An error occurred while retrieving updated user data" });
+                }
+            }
+
             return BadRequest(result);
         }
 
         [HttpPost("address/add")]
         [Authorize]
-        public async Task<IActionResult> AddUserAddress([FromBody] UserAddressDTO model)
+        public async Task<IActionResult> AddUserAddress([FromBody] ManageUserAddressDTO model)
         {
             if (!ModelState.IsValid)
             {
@@ -493,14 +523,27 @@ namespace Web.API.Features.Authentication
 
             var result = await _addUserAddressCommand.ExecuteAsync(user, model);
 
-            if (result.Succeeded) return Ok("Address added");
+            if (result.Succeeded)
+            {
+                var updatedUser = await _getUserQuery.ExecuteAsync(userId);
+                var userDTO = _mapUserToDTOQuery.Execute(updatedUser);
+
+                if (userDTO.Result is OkObjectResult okResult)
+                {
+                    return Ok(new { Message = "Phone number updated", User = okResult.Value });
+                }
+                else
+                {
+                    return StatusCode(500, new { message = "An error occurred while retrieving updated user data" });
+                }
+            }
 
             return BadRequest(result);
         }
 
-        [HttpPost("address/remove")]
+        [HttpPost("address/remove/{addressId}")]
         [Authorize]
-        public async Task<IActionResult> RemoveUserAddress([FromBody] UserAddressDTO model)
+        public async Task<IActionResult> RemoveUserAddress([FromRoute] int addressId, [FromBody] UserAddressDTO model)
         {
             if (!ModelState.IsValid)
             {
@@ -515,16 +558,29 @@ namespace Web.API.Features.Authentication
             var user = await _getUserQuery.ExecuteAsync(userId);
             if (user == null) return NotFound("User not found");
 
-            var result = await _removeUserAddressCommand.ExecuteAsync(user, model);
+            var result = await _removeUserAddressCommand.ExecuteAsync(user, addressId, model);
 
-            if (result.Succeeded) return Ok("Address added");
+            if (result.Succeeded)
+            {
+                var updatedUser = await _getUserQuery.ExecuteAsync(userId);
+                var userDTO = _mapUserToDTOQuery.Execute(updatedUser);
+
+                if (userDTO.Result is OkObjectResult okResult)
+                {
+                    return Ok(new { Message = "Phone number updated", User = okResult.Value });
+                }
+                else
+                {
+                    return StatusCode(500, new { message = "An error occurred while retrieving updated user data" });
+                }
+            }
 
             return BadRequest(result);
         }
 
-        [HttpPost("address/update")]
+        [HttpPost("address/update/{addressId}")]
         [Authorize]
-        public async Task<IActionResult> UpdateUserAddress(UserAddressDTO model)
+        public async Task<IActionResult> UpdateUserAddress([FromRoute] int addressId, ManageUserAddressDTO model)
         {
             if (!ModelState.IsValid)
             {
@@ -539,9 +595,22 @@ namespace Web.API.Features.Authentication
             var user = await _getUserQuery.ExecuteAsync(userId);
             if (user == null) return NotFound("User not found");
 
-            var result = await _updateUserAddressCommand.ExecuteAsync(user, model);
+            var result = await _updateUserAddressCommand.ExecuteAsync(user, addressId, model);
 
-            if (result.Succeeded) return Ok("Phone number updated");
+            if (result.Succeeded)
+            {
+                var updatedUser = await _getUserQuery.ExecuteAsync(userId);
+                var userDTO = _mapUserToDTOQuery.Execute(updatedUser);
+
+                if (userDTO.Result is OkObjectResult okResult)
+                {
+                    return Ok(new { Message = "Phone number updated", User = okResult.Value });
+                }
+                else
+                {
+                    return StatusCode(500, new { message = "An error occurred while retrieving updated user data" });
+                }
+            }
             return BadRequest(result);
         }
     }

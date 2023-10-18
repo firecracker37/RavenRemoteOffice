@@ -23,51 +23,27 @@ namespace Web.API.Features.Authentication.Commands
             _dbContext = dbContext;
         }
 
-        public async Task<IdentityResult> ExecuteAsync(ApplicationUser user, UserPhoneDTO model)
+        public async Task<IdentityResult> ExecuteAsync(ApplicationUser user, int phoneId, ManageUserPhoneDTO model)
         {
             if (user == null || model == null)
                 return IdentityResult.Failed(new IdentityError { Description = "An error occurred while processing your request." });
 
-            if (model.Id == null)
-            {
-                _logger.LogWarning($"Failed updating phone number for user: {user.Email} as Phone ID is missing");
-                return IdentityResult.Failed(new IdentityError { Description = "Phone ID is required for updating." });
-            }
+            if (phoneId <= 0)
+                return IdentityResult.Failed(new IdentityError { Description = "Invalid phone number ID." });
 
-            model.PhoneNumber = StringUtilities.SanitizePhoneNumber(model.PhoneNumber);
-
-            if (string.IsNullOrEmpty(model.PhoneNumber) || model.PhoneNumber.Length < 10)
-            {
-                _logger.LogWarning($"Failed updating phone number for user: {user.Email} Phone Number: {model.PhoneNumber}");
-                return IdentityResult.Failed(new IdentityError { Description = "Invalid phone number." });
-            }
-
-            var userPhone = await _dbContext.UserPhones.FindAsync(model.Id);
-
-            if (userPhone == null)
-            {
-                _logger.LogWarning($"Phone number with ID {model.Id} not found for user: {user.Email}");
+            // Retrieve the UserPhone object using the phoneId
+            var numberToUpdate = user.UserProfile.PhoneNumbers.FirstOrDefault(p => p.Id == phoneId);
+            if (numberToUpdate == null)
                 return IdentityResult.Failed(new IdentityError { Description = "Phone number not found." });
-            }
 
-            if (userPhone.UserProfileId != user.UserProfileId)
-            {
-                _logger.LogWarning($"User: {user.Email} does not own the phone number with ID {model.Id}");
-                return IdentityResult.Failed(new IdentityError { Description = "You do not have permission to update this phone number." });
-            }
+            // Update the UserPhone object with the new data from the DTO
+            numberToUpdate.NickName = model.NickName;
+            numberToUpdate.PhoneNumber = model.PhoneNumber;
 
-            var updateResult = await _identityService.UpdateUserPhoneNumberAsync(userPhone, model);
+            // Call the service to update the entity in the database
+            var result = await _identityService.UpdateUserPhoneNumberAsync(numberToUpdate);
 
-            if (updateResult.Succeeded)
-            {
-                _logger.LogInformation($"Successfully updated phone number for user: {user.Email}");
-            }
-            else
-            {
-                _logger.LogError($"Failed to update phone number for user: {user.Email}. Errors: {string.Join(", ", updateResult.Errors.Select(e => e.Description))}");
-            }
-
-            return updateResult;
+            return result;
         }
     }
 }

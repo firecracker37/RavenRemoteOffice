@@ -21,11 +21,9 @@ namespace Web.API.Features.Authentication.Commands
             _dbContext = dbContext;
         }
 
-        public async Task<IdentityResult> ExecuteAsync(ApplicationUser user, UserAddressDTO model)
+        public async Task<IdentityResult> ExecuteAsync(ApplicationUser user, int addressId, UserAddressDTO model)
         {
-            if (user == null || model == null)
-                return IdentityResult.Failed(new IdentityError { Description = "An error occurred while processing your request." });
-            if(model.Id == null)
+            if (user == null || model == null || addressId <= 0)
                 return IdentityResult.Failed(new IdentityError { Description = "An error occurred while processing your request." });
 
             // Check if the phone number belongs to the user

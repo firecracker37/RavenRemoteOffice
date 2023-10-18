@@ -19,33 +19,33 @@ namespace Web.API.Features.Authentication.Commands
             _dbContext = dbContext;
         }
 
-        public async Task<IdentityResult> ExecuteAsync(ApplicationUser user, UserAddressDTO model)
+        public async Task<IdentityResult> ExecuteAsync(ApplicationUser user, int addressId, ManageUserAddressDTO model)
         {
-            if (user == null || model == null)
+            if (user == null || model == null || addressId <=0)
                 return IdentityResult.Failed(new IdentityError { Description = "An error occurred while processing your request." });
 
-            if (model.Id == null)
-            {
-                _logger.LogWarning($"Failed updating address for user: {user.Email} as Address ID is missing");
-                return IdentityResult.Failed(new IdentityError { Description = "Address ID is required for updating." });
-            }
-
-           
-            var userAddress = await _dbContext.UserAddresses.FindAsync(model.Id);
+            var userAddress = await _dbContext.UserAddresses.FindAsync(addressId);
 
             if (userAddress == null)
             {
-                _logger.LogWarning($"Address with ID {model.Id} not found for user: {user.Email}");
+                _logger.LogWarning($"Address with ID {addressId} not found for user: {user.Email}");
                 return IdentityResult.Failed(new IdentityError { Description = "Address number not found." });
             }
 
             if (userAddress.UserProfileId != user.UserProfileId)
             {
-                _logger.LogWarning($"User: {user.Email} does not own the address with ID {model.Id}");
+                _logger.LogWarning($"User: {user.Email} does not own the address with ID {addressId}");
                 return IdentityResult.Failed(new IdentityError { Description = "You do not have permission to update this address." });
             }
 
-            var updateResult = await _identityService.UpdateUserAddressAsync(userAddress, model);
+            // Map DTO to UserAddress
+            userAddress.Street1 = model.Street1;
+            userAddress.Street2 = model.Street2;
+            userAddress.City = model.City;
+            userAddress.State = model.State;
+            userAddress.PostalCode = model.PostalCode;
+
+            var updateResult = await _identityService.UpdateUserAddressAsync(userAddress);
 
             if (updateResult.Succeeded)
             {

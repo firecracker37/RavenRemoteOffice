@@ -16,13 +16,25 @@ namespace Web.API.Features.Authentication.Commands
             _logger = logger;
         }
 
-        public async Task<IdentityResult> ExecuteAsync(ApplicationUser user, UserAddressDTO model)
+        public async Task<IdentityResult> ExecuteAsync(ApplicationUser user, ManageUserAddressDTO model)
         {
             if (user == null || model == null)
                 return IdentityResult.Failed(new IdentityError { Description = "An error occurred while processing your request." });
 
+            var userAddress = new UserAddress
+            {
+                NickName = model.NickName,
+                Street1 = model.Street1,
+                Street2 = model.Street2,
+                City = model.City,
+                State = model.State,
+                PostalCode = model.PostalCode,
+                UserProfileId = user.UserProfileId,
+                UserProfile = user.UserProfile
+            };
+
             // Call the IdentityService here to proceed with adding the phone number to the user.
-            var result = await _identityService.AddUserAddressAsync(user, model);
+            var result = await _identityService.AddUserAddressAsync(user, userAddress);
 
             return result;
         }

@@ -23,11 +23,11 @@ namespace Web.API.Features.Authentication.Services
         Task<string> RequestPasswordResetAsync(ApplicationUser user);
         Task<IdentityResult> ResetUserPasswordAsync(ResetUserPasswordDTO model);
         Task<IdentityResult> ChangeUserPasswordAsync(ApplicationUser user, ChangePasswordDTO model);
-        Task<IdentityResult> AddUserPhoneNumberAsync(ApplicationUser user, UserPhoneDTO model);
+        Task<IdentityResult> AddUserPhoneNumberAsync(ApplicationUser user, UserPhone model);
         Task<IdentityResult> RemoveUserPhoneNumberAsync(UserPhone model);
-        Task<IdentityResult> UpdateUserPhoneNumberAsync(UserPhone numberToUpdate, UserPhoneDTO model);
-        Task<IdentityResult> AddUserAddressAsync(ApplicationUser user, UserAddressDTO model);
+        Task<IdentityResult> UpdateUserPhoneNumberAsync(UserPhone numberToUpdate);
+        Task<IdentityResult> AddUserAddressAsync(ApplicationUser user, UserAddress model);
         Task<IdentityResult> RemoveUserAddressAsync(UserAddress model);
-        Task<IdentityResult> UpdateUserAddressAsync(UserAddress addressToUpdate, UserAddressDTO model);
+        Task<IdentityResult> UpdateUserAddressAsync(UserAddress addressToUpdate);
     }
 }

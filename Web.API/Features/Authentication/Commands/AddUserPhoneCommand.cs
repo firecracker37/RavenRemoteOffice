@@ -17,7 +17,7 @@ namespace Web.API.Features.Authentication.Commands
             _logger = logger;
         }
 
-        public async Task<IdentityResult> ExecuteAsync(ApplicationUser user, UserPhoneDTO model)
+        public async Task<IdentityResult> ExecuteAsync(ApplicationUser user, ManageUserPhoneDTO model)
         {
             if (user == null || model == null)
                 return IdentityResult.Failed(new IdentityError { Description = "An error occurred while processing your request." });
@@ -30,8 +30,17 @@ namespace Web.API.Features.Authentication.Commands
                 return IdentityResult.Failed(new IdentityError { Description = "Invalid phone number." });
             }
 
-            // Call the IdentityService here to proceed with adding the phone number to the user.
-            var result = await _identityService.AddUserPhoneNumberAsync(user, model);
+            // Creating the UserPhone object in the command layer
+            var userPhone = new UserPhone
+            {
+                NickName = model.NickName,
+                PhoneNumber = model.PhoneNumber,
+                UserProfileId = user.UserProfileId,
+                UserProfile = user.UserProfile
+            };
+
+            // Call the IdentityService with the UserPhone object
+            var result = await _identityService.AddUserPhoneNumberAsync(user, userPhone);
 
             return result;
         }
