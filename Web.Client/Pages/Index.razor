@@ -1,3 +1,44 @@
 ﻿@page "/"
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using Web.Shared.DTOs
 
-<h1>Hello, world!</h1>
+<AuthorizeView>
+    <Authorized>
+        <h3>Hello, @context.User.Identity.Name!</h3>
+    </Authorized>
+    <NotAuthorized>
+        <div class="login-container">
+            <div class="login-form">
+                <EditForm Model="loginUser" OnValidSubmit="HandleLogin">
+                    <MudText Typo="Typo.h5">Login</MudText>
+
+                    <MudTextField Label="Email" @bind-Value="loginUser.Email" Required="true" Class="mt-3"></MudTextField>
+                    <ValidationMessage For="@(() => loginUser.Email)" />
+
+                    <MudTextField Label="Password" @bind-Value="loginUser.Password" Required="true" Type="Password" Class="mt-3"></MudTextField>
+                    <ValidationMessage For="@(() => loginUser.Password)" />
+
+                    <MudGrid Class="justify-content-between">
+                        <MudItem>
+                            <MudButton Type="Submit" Variant="Variant.Filled" Color="Color.Primary" Class="mt-3">Login</MudButton>
+                        </MudItem>
+                        <MudItem Class="mt-3">
+                            <span>
+                                Need an Account? <MudLink Href="/register" Class="ml-2 link">Register Here</MudLink>
+                            </span>
+                        </MudItem>
+                    </MudGrid>
+                </EditForm>
+            </div>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private LoginUserDTO loginUser = new LoginUserDTO();
+
+    private void HandleLogin()
+    {
+        // Handle the login process here
+    }
+}

@@ -1,0 +1,5 @@
+{
+	"authority": "http://localhost:5026/Authentication",
+	"redirect_uri": "https://localhost:7162/authentication/login-callback",
+	"post_logout_redirect_uri": "https://localhost:7162"
+}

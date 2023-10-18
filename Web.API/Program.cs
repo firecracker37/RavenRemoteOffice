@@ -83,6 +83,18 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Add CORS services and configure a CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", policy =>
+    {
+        policy.WithOrigins("https://localhost:7162")
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();  // Allows cookies to be included in the CORS request
+    });
+});
+
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Verbose()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
@@ -114,6 +126,8 @@ using (var scope = app.Services.CreateScope())
 // Configure the HTTP request pipeline.
 app.UseHttpsRedirection();
 
+app.UseCors("CorsPolicy");
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -141,7 +155,7 @@ app.MapFallback(async context =>
     if (!excludedPaths.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
     {
         // If not, redirect to Swagger UI
-        context.Response.Redirect("/swagger");
+        //context.Response.Redirect("/swagger");
     }
     else
     {

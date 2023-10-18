@@ -5,21 +5,110 @@
     <meta charset="utf-8" />
     <title>Web.Client</title>
     <base href="/" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
     <link href="css/app.css" rel="stylesheet" />
-    
-    <!-- If you add any scoped CSS files, uncomment the following to load them
-    <link href="Web.Client.styles.css" rel="stylesheet" /> -->
+
+    <link href="Web.Client.styles.css" rel="stylesheet" />
+    <style>
+        /* Style for the progress bar container */
+        div.progress-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        /* Style for the progress bar */
+        #loading-progress {
+            width: 100%;
+            max-width: 400px;
+            height: 20px;
+            border: none;
+            border-radius: 10px;
+            background-color: #e0e0e0;
+        }
+
+            #loading-progress::-webkit-progress-bar {
+                border-radius: 10px;
+                background-color: #e0e0e0;
+            }
+
+            #loading-progress::-webkit-progress-value {
+                border-radius: 10px;
+                background-color: #76c7c0;
+            }
+
+            #loading-progress::-moz-progress-bar {
+                border-radius: 10px;
+                background-color: #76c7c0;
+            }
+
+        /* Style for the loading text */
+        #loading-text {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #333;
+        }
+    </style>
 </head>
 
 <body>
-    <div id="app">Loading...</div>
+    <div id="app">
+        <div class="progress-container">
+            <progress max="100" value="0" id="loading-progress"></progress>
+            <div id="loading-text">Loading...</div>
+        </div>
+    </div>
 
     <div id="blazor-error-ui">
         An unhandled error has occurred.
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>
-    <script src="_framework/blazor.webassembly.js"></script>
+
+    <script>
+        console.log('Script started');
+
+        var loadingProgress = document.getElementById('loading-progress');
+        if (!loadingProgress) {
+            console.error('Loading progress element not found');
+        } else {
+            console.log('Loading progress element found');
+        }
+
+        var blazorScript = document.createElement('script');
+        blazorScript.src = '_framework/blazor.webassembly.js';
+
+        blazorScript.onload = function () {
+            console.log('Blazor script loaded');
+            loadingProgress.value = 100;
+        };
+
+        blazorScript.onerror = function (error) {
+            console.error('Error loading Blazor script', error);
+        };
+
+        blazorScript.onprogress = function (event) {
+            console.log('Blazor script loading progress event', event);
+            if (event.lengthComputable) {
+                var progress = (event.loaded / event.total) * 100;
+                console.log('Progress:', progress);
+                loadingProgress.value = progress;
+            } else {
+                console.warn('Length not computable');
+            }
+        };
+
+        document.body.appendChild(blazorScript);
+        console.log('Blazor script element appended to body');
+    </script>
+
+
+    <script src="_content/Microsoft.AspNetCore.Components.Web.Extensions/script.js"></script>
+    <script src="_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication/AuthenticationService.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
 </body>
 
 </html>

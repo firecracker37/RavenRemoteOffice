@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Web.API.Features.Authentication.Commands;
-using Web.API.Features.Authentication.DTOs;
 using Web.API.Features.Authentication.Models;
 using Web.API.Features.Authentication.Queries;
 using Web.Shared.DTOs;
@@ -20,8 +19,6 @@ namespace Web.API.Features.Authentication
         private readonly LogoutCommand _logoutCommand;
         private readonly SendEmailVerificationEmailCommand _sendEmailVerificationEmailCommand;
         private readonly VerifyUserEmailCommand _verifyUserEmailCommand;
-        private readonly AddUserToRoleCommand _addUserToRoleCommand;
-        private readonly RemoveUserFromRoleCommand _removeUserFromRoleCommand;
         private readonly GetUserQuery _getUserQuery;
         private readonly GetUserByEmailQuery _getUserByEmailQuery;
         private readonly GetUserRolesQuery _getUserRolesQuery;
@@ -44,8 +41,6 @@ namespace Web.API.Features.Authentication
             LogoutCommand logoutCommand,
             SendEmailVerificationEmailCommand sendEmailVerificationEmailCommand,
             VerifyUserEmailCommand verifyUserEmailCommand,
-            AddUserToRoleCommand addUserToRoleCommand,
-            RemoveUserFromRoleCommand removeUserFromRoleCommand,
             GetUserQuery getUserQuery,
             GetUserByEmailQuery getUserByEmailQuery,
             GetUserRolesQuery getUserRolesQuery,
@@ -67,8 +62,6 @@ namespace Web.API.Features.Authentication
             _logoutCommand = logoutCommand;
             _sendEmailVerificationEmailCommand = sendEmailVerificationEmailCommand;
             _verifyUserEmailCommand = verifyUserEmailCommand;
-            _addUserToRoleCommand = addUserToRoleCommand;
-            _removeUserFromRoleCommand = removeUserFromRoleCommand;
             _getUserQuery = getUserQuery;
             _getUserByEmailQuery = getUserByEmailQuery;
             _getUserRolesQuery = getUserRolesQuery;
@@ -152,7 +145,7 @@ namespace Web.API.Features.Authentication
             return Ok("Logged out successfully.");
         }
 
-        [HttpGet("confirm-email")]
+        [HttpGet("user/confirm-email")]
         public async Task<IActionResult> ConfirmEmail([FromQuery] EmailConfirmationDTO model)
         {
             _logger.LogInformation($"ConfirmEmail called with UserId: {model.UserId}, Token: {model.Token}");
@@ -178,7 +171,7 @@ namespace Web.API.Features.Authentication
             }
         }
 
-        [HttpPost("resend-confirmation-email")]
+        [HttpPost("user/resend-email-confirmation")]
         public async Task<IActionResult> ResendConfirmationEmail([FromBody] string email)
         {
             if (string.IsNullOrEmpty(email))
@@ -198,7 +191,7 @@ namespace Web.API.Features.Authentication
             }
         }
 
-        [HttpPost("request-password-reset")]
+        [HttpPost("user/request-password-reset")]
         public async Task<IActionResult> RequestPasswordReset([FromBody] string email)
         {
             if (string.IsNullOrEmpty(email))
@@ -217,7 +210,7 @@ namespace Web.API.Features.Authentication
                 return BadRequest(result.ErrorMessage);
             }
         }
-        [HttpPost("reset-user-password")]
+        [HttpPost("user/reset-password")]
         public async Task<IActionResult> ResetUserPassword([FromBody] ResetUserPasswordDTO model)
         {
             if (!ModelState.IsValid)
@@ -237,7 +230,7 @@ namespace Web.API.Features.Authentication
 
             return BadRequest($"Password reset failed!");
         }
-        [HttpGet("change-user-password")]
+        [HttpPost("user/change-password")]
         [Authorize]
         public async Task<IActionResult> ChangeUserPassword([FromBody] ChangePasswordDTO model)
         {
@@ -336,38 +329,6 @@ namespace Web.API.Features.Authentication
 
             if (userRoles == null || !userRoles.Any()) return NotFound("No roles assigned to the user");
             return Ok(userRoles);
-        }
-
-        [HttpPost("role/add")]
-        [Authorize(Roles = "Admin, Manager")]
-        public async Task<IActionResult> AddUserToRole([EmailAddress] string email, string role)
-        {
-            var user = await _getUserByEmailQuery.ExecuteAsync(email);
-
-            if (user == null) return NotFound();
-
-            if (string.IsNullOrEmpty(role))
-            {
-                return BadRequest("Role is required");
-            }
-
-            var result = await _addUserToRoleCommand.ExecuteAsync(new UserWithRoleDTO { User = user, Role = role });
-
-            if (result.Succeeded) return Ok();
-
-            var error = result.Errors.FirstOrDefault();
-
-            if (error != null)
-            {
-                return error.Code switch
-                {
-                    "NullUserWithRole" or "NullUser" or "InvalidRole" => BadRequest(error.Description),
-                    "Unauthorized" or "UserNotFound" or "PermissionDenied" => Unauthorized(error.Description),
-                    _ => BadRequest("An unexpected error occurred")
-                };
-            }
-
-            return BadRequest("An unexpected error occurred");
         }
 
         [HttpPost("phone/add")]

@@ -1,0 +1,47 @@
+﻿@page "/register"
+@using Web.Shared.DTOs
+
+@inject NavigationManager NavManager
+
+<div class="register-container">
+    <div class="register-form">
+        <EditForm Model="registerUser" OnValidSubmit="HandleRegister">
+            <MudText Typo="Typo.h5">Register</MudText>
+
+            <MudTextField Label="Email" @bind-Value="registerUser.Email" Required="true" Class="mt-3"></MudTextField>
+            <ValidationMessage For="@(() => registerUser.Email)" />
+
+            <MudTextField Label="Password" @bind-Value="registerUser.Password" Required="true" Type="Password" Class="mt-3"></MudTextField>
+            <ValidationMessage For="@(() => registerUser.Password)" />
+
+            <MudTextField Label="Confirm Password" @bind-Value="registerUser.ConfirmPassword" Required="true" Type="Password" Class="mt-3"></MudTextField>
+            <ValidationMessage For="@(() => registerUser.ConfirmPassword)" />
+
+            <MudTextField Label="First Name" @bind-Value="registerUser.FirstName" Required="true" Class="mt-3"></MudTextField>
+            <ValidationMessage For="@(() => registerUser.FirstName)" />
+
+            <MudTextField Label="Last Name" @bind-Value="registerUser.LastName" Required="true" Class="mt-3"></MudTextField>
+            <ValidationMessage For="@(() => registerUser.LastName)" />
+
+            <MudGrid Class="justify-content-between">
+                <MudItem>
+                    <MudButton Type="Submit" Variant="Variant.Filled" Color="Color.Primary" Class="mt-3">Register</MudButton>
+                </MudItem>
+                <MudItem Class="mt-3">
+                    <span>
+                        Have an Account? <MudLink Href="/" Class="ml-2 link">Login Here</MudLink>
+                    </span>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private RegisterUserDTO registerUser = new RegisterUserDTO();
+
+    private void HandleRegister()
+    {
+        // Handle the registration process here
+    }
+}
