@@ -266,8 +266,8 @@ namespace Web.API.Features.Authentication
             return BadRequest($"Password change failed!");
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ApplicationUser>> GetUser(string id)
+        [HttpGet("user/id/{id}")]
+        public async Task<ActionResult<ApplicationUser>> GetUser([FromRoute] string id)
         {
             var user = await _getUserQuery.ExecuteAsync(id);
 
@@ -277,8 +277,8 @@ namespace Web.API.Features.Authentication
             return Ok(returnUser);
         }
 
-        [HttpGet("email/{email}")]
-        public async Task<ActionResult<ApplicationUser>> GetUserByEmail([EmailAddress] string email)
+        [HttpGet("user/email/{email}")]
+        public async Task<ActionResult<ApplicationUser>> GetUserByEmail([FromRoute] [EmailAddress] string email)
         {
             var user = await _getUserByEmailQuery.ExecuteAsync(email);
 
@@ -288,7 +288,7 @@ namespace Web.API.Features.Authentication
             return Ok(returnUser);
         }
 
-        [HttpGet("current")]
+        [HttpGet("user/current")]
         [Authorize]
         public async Task<ActionResult<ApplicationUser>> GetCurrent()
         {
@@ -305,6 +305,37 @@ namespace Web.API.Features.Authentication
 
             var returnUser = _mapUserToDTOQuery.Execute(user);
             return Ok(returnUser);
+        }
+
+        [HttpGet("user/roles/{userId}")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<string>>> GetUserRoles([FromRoute] string userId)
+        {
+            if (string.IsNullOrEmpty(userId)) return BadRequest("UserId is required");
+
+            var user = await _getUserQuery.ExecuteAsync(userId);
+            if (user == null) return NotFound("User not found");
+
+            var userRoles = await _getUserRolesQuery.ExecuteAsync(user);
+
+            if (userRoles == null || !userRoles.Any()) return NotFound("No roles assigned to the user");
+            return Ok(userRoles);
+        }
+
+        [HttpGet("user/roles/current")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<string>>> GetCurrentUsersRoles()
+        {
+            var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized("User is not logged in");
+
+            var user = await _getUserQuery.ExecuteAsync(userId);
+            if (user == null) return NotFound("User not found");
+
+            var userRoles = await _getUserRolesQuery.ExecuteAsync(user);
+
+            if (userRoles == null || !userRoles.Any()) return NotFound("No roles assigned to the user");
+            return Ok(userRoles);
         }
 
         [HttpPost("role/add")]
@@ -337,70 +368,6 @@ namespace Web.API.Features.Authentication
             }
 
             return BadRequest("An unexpected error occurred");
-        }
-
-        [HttpPost("role/remove")]
-        [Authorize(Roles = "Admin, Manager")]
-        public async Task<IActionResult> RemoveUserFromRole([EmailAddress] string email, string role)
-        {
-            var user = await _getUserByEmailQuery.ExecuteAsync(email);
-
-            if (user == null) return NotFound();
-
-            if (string.IsNullOrEmpty(role))
-            {
-                return BadRequest("Role is required");
-            }
-
-            var result = await _removeUserFromRoleCommand.ExecuteAsync(new UserWithRoleDTO { User = user, Role = role });
-
-            if (result.Succeeded) return Ok();
-
-            var error = result.Errors.FirstOrDefault();
-
-            if (error != null)
-            {
-                return error.Code switch
-                {
-                    "NullUserWithRole" or "NullUser" or "InvalidRole" => BadRequest(error.Description),
-                    "Unauthorized" or "UserNotFound" or "PermissionDenied" => Unauthorized(error.Description),
-                    _ => BadRequest("An unexpected error occurred")
-                };
-            }
-
-            return BadRequest("An unexpected error occurred");
-        }
-
-
-        [HttpGet("role/get-user-roles")]
-        [Authorize]
-        public async Task<ActionResult<IEnumerable<string>>> GetUserRoles([EmailAddress] string email)
-        {
-            if (string.IsNullOrEmpty(email)) return BadRequest("Email is required");
-
-            var user = await _getUserByEmailQuery.ExecuteAsync(email);
-            if (user == null) return NotFound("User not found");
-
-            var userRoles = await _getUserRolesQuery.ExecuteAsync(user);
-
-            if (userRoles == null || !userRoles.Any()) return NotFound("No roles assigned to the user");
-            return Ok(userRoles);
-        }
-
-        [HttpGet("role/current-user-roles")]
-        [Authorize]
-        public async Task<ActionResult<IEnumerable<string>>> GetCurrentUsersRoles()
-        {
-            var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId)) return Unauthorized("User is not logged in");
-
-            var user = await _getUserQuery.ExecuteAsync(userId);
-            if (user == null) return NotFound("User not found");
-
-            var userRoles = await _getUserRolesQuery.ExecuteAsync(user);
-
-            if (userRoles == null || !userRoles.Any()) return NotFound("No roles assigned to the user");
-            return Ok(userRoles);
         }
 
         [HttpPost("phone/add")]

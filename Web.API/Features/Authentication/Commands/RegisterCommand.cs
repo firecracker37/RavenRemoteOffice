@@ -23,6 +23,11 @@ namespace Web.API.Features.Authentication.Commands
 
         public async Task<IdentityResult> ExecuteAsync(RegisterUserDTO model)
         {
+            if(model == null)
+                return IdentityResult.Failed(new IdentityError { Description = "An error occured while trying to process your request" });
+            if (await _identityService.FindUserByEmailAsync(model.Email) != null)
+                return IdentityResult.Failed(new IdentityError { Description = "A user with that email address is already registered" });
+
             // Register the user
             var registrationResult = await _identityService.RegisterUserAsync(model);
 
